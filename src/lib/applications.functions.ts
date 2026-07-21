@@ -180,26 +180,25 @@ export const addJournalNote = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const upsertContact = createServerFn({ method: "POST" })
+const ContactInput = z.object({
+  nom: z.string().max(150).optional().default(""),
+  role: z.string().max(150).optional().default(""),
+  email: z.preprocess((v) => (typeof v === "string" ? v.trim() : v),
+    z.union([z.literal(""), z.string().email()]).optional().default("")),
+  linkedin: z.preprocess((v) => {
+    if (typeof v !== "string") return v;
+    const s = v.trim();
+    if (!s) return "";
+    return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+  }, z.union([z.literal(""), z.string().url()]).optional().default("")),
+});
+
+export const addContact = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      application_id: z.string().uuid(),
-      nom: z.string().max(150).optional().default(""),
-      role: z.string().max(150).optional().default(""),
-      email: z.preprocess((v) => (typeof v === "string" ? v.trim() : v),
-        z.union([z.literal(""), z.string().email()]).optional().default("")),
-      linkedin: z.preprocess((v) => {
-        if (typeof v !== "string") return v;
-        const s = v.trim();
-        if (!s) return "";
-        return /^https?:\/\//i.test(s) ? s : `https://${s}`;
-      }, z.union([z.literal(""), z.string().url()]).optional().default("")),
-    }).parse(d),
+    ContactInput.extend({ application_id: z.string().uuid() }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    // Simple approach: delete existing, insert one
-    await context.supabase.from("contacts").delete().eq("application_id", data.application_id);
     const { error } = await context.supabase.from("contacts").insert({
       application_id: data.application_id,
       nom: data.nom || null,
@@ -208,6 +207,34 @@ export const upsertContact = createServerFn({ method: "POST" })
       linkedin: data.linkedin || null,
     });
     if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateContact = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    ContactInput.extend({ id: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("contacts").update({
+      nom: data.nom || null,
+      role: data.role || null,
+      email: data.email || null,
+      linkedin: data.linkedin || null,
+    }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteContact = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("contacts").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
     return { ok: true };
   });
 
