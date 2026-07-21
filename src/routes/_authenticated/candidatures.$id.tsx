@@ -2,11 +2,14 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Trash2, Plus, Pencil, X, Check } from "lucide-react";
 import { AppHeader } from "@/components/candid/AppHeader";
 import { StatusSelect } from "@/components/candid/StatusSelect";
 import {
-  getApplication, updateApplicationStatus, addJournalNote, upsertContact, updateApplicationSkills,
+  getApplication, updateApplicationStatus, addJournalNote,
+  addContact, updateContact, deleteContact, updateApplicationSkills,
 } from "@/lib/applications.functions";
+import type { Contact } from "@/lib/mock-data";
 
 const appQuery = (id: string) =>
   queryOptions({ queryKey: ["application", id], queryFn: () => getApplication({ data: { id } }) });
@@ -24,15 +27,10 @@ function DetailPage() {
   const { data: c } = useSuspenseQuery(appQuery(id));
   const qc = useQueryClient();
   const [note, setNote] = useState("");
-  const [nom, setNom] = useState(c?.contact?.name ?? "");
-  const [role, setRole] = useState(c?.contact?.role ?? "");
-  const [email, setEmail] = useState(c?.contact?.email ?? "");
-  const [linkedin, setLinkedin] = useState(c?.contact?.linkedin ?? "");
   const [skills, setSkills] = useState((c?.skills ?? []).join(", "));
 
   const updateFn = useServerFn(updateApplicationStatus);
   const noteFn = useServerFn(addJournalNote);
-  const contactFn = useServerFn(upsertContact);
   const skillsFn = useServerFn(updateApplicationSkills);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["application", id] });
@@ -42,12 +40,10 @@ function DetailPage() {
     mutationFn: () => noteFn({ data: { id, text: note } }),
     onSuccess: () => { setNote(""); invalidate(); },
   });
-  const contactMut = useMutation({
-    mutationFn: () => contactFn({ data: { application_id: id, nom, role, email, linkedin } }),
-    onSuccess: invalidate,
-  });
   const skillsMut = useMutation({
     mutationFn: () => skillsFn({ data: { id, skills } }),
+    onSuccess: invalidate,
+  });
     onSuccess: invalidate,
   });
 
