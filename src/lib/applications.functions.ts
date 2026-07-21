@@ -173,8 +173,10 @@ export const upsertContact = createServerFn({ method: "POST" })
       application_id: z.string().uuid(),
       nom: z.string().max(150).optional().default(""),
       role: z.string().max(150).optional().default(""),
-      email: z.union([z.literal(""), z.string().email()]).optional().default(""),
-      linkedin: z.union([z.literal(""), z.string().url()]).optional().default(""),
+      email: z.preprocess((v) => (typeof v === "string" ? v.trim() : v),
+        z.union([z.literal(""), z.string().email()]).optional().default("")),
+      linkedin: z.preprocess((v) => (typeof v === "string" ? v.trim() : v),
+        z.union([z.literal(""), z.string().url()]).optional().default("")),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
