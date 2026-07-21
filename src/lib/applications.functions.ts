@@ -175,8 +175,12 @@ export const upsertContact = createServerFn({ method: "POST" })
       role: z.string().max(150).optional().default(""),
       email: z.preprocess((v) => (typeof v === "string" ? v.trim() : v),
         z.union([z.literal(""), z.string().email()]).optional().default("")),
-      linkedin: z.preprocess((v) => (typeof v === "string" ? v.trim() : v),
-        z.union([z.literal(""), z.string().url()]).optional().default("")),
+      linkedin: z.preprocess((v) => {
+        if (typeof v !== "string") return v;
+        const s = v.trim();
+        if (!s) return "";
+        return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+      }, z.union([z.literal(""), z.string().url()]).optional().default("")),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
