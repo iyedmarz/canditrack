@@ -235,8 +235,7 @@ export const deleteContact = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-    return { ok: true };
-  });
+
 
 export const getProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
