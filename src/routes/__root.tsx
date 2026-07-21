@@ -77,21 +77,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CandidTrack — Suivi de candidatures" },
+      { title: "CandidTrack — Suivi intelligent de candidatures" },
       {
         name: "description",
         content:
-          "Outil professionnel de suivi de candidatures. Ajoutez vos offres, laissez le statut se mettre à jour automatiquement selon vos emails.",
+          "Centralisez vos candidatures, laissez l'IA extraire les offres et classer vos emails automatiquement.",
       },
       { name: "author", content: "CandidTrack" },
-      { property: "og:title", content: "CandidTrack — Suivi de candidatures" },
+      { property: "og:title", content: "CandidTrack — Suivi intelligent de candidatures" },
       {
         property: "og:description",
         content:
-          "Outil professionnel de suivi de candidatures avec mise à jour automatique du statut par email.",
+          "Centralisez vos candidatures, laissez l'IA extraire les offres et classer vos emails automatiquement.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "CandidTrack — Suivi intelligent de candidatures" },
+      { name: "twitter:description", content: "Centralisez vos candidatures, laissez l'IA extraire les offres et classer vos emails automatiquement." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7b711b76-50d9-4de3-a4a4-528d79caaf09/id-preview-b72a32a2--7ccc1571-5042-477b-84b0-7934aea5fe6e.lovable.app-1784667627224.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7b711b76-50d9-4de3-a4a4-528d79caaf09/id-preview-b72a32a2--7ccc1571-5042-477b-84b0-7934aea5fe6e.lovable.app-1784667627224.png" },
     ],
     links: [
       {
