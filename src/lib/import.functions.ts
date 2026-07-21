@@ -29,6 +29,20 @@ function parseCSV(text: string): string[][] {
   return rows.filter((r) => r.some((c) => c.trim() !== ""));
 }
 
+// Parse dates in dd/mm/yyyy or dd-mm-yyyy (also dd/mm/yy), fallback to Date constructor (ISO).
+function parseDate(s: string): Date {
+  const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (m) {
+    const dd = parseInt(m[1], 10);
+    const mm = parseInt(m[2], 10) - 1;
+    let yy = parseInt(m[3], 10);
+    if (yy < 100) yy += yy < 50 ? 2000 : 1900;
+    return new Date(yy, mm, dd);
+  }
+  return new Date(s);
+}
+
+
 const STATUS_MAP: Record<string, CandidatureStatus> = {
   envoyee: "sent", envoyée: "sent", sent: "sent",
   "accuse de reception": "ack", "accusé de réception": "ack", ack: "ack",
@@ -70,7 +84,7 @@ export const importCsv = createServerFn({ method: "POST" })
       const url = iUrl >= 0 ? row[iUrl]?.trim() || null : null;
       const rawStatus = iStatut >= 0 ? row[iStatut]?.trim().toLowerCase() : "sent";
       const uiStatus = STATUS_MAP[rawStatus] ?? "sent";
-      const date = iDate >= 0 && row[iDate]?.trim() ? new Date(row[iDate].trim()) : new Date();
+      const date = iDate >= 0 && row[iDate]?.trim() ? parseDate(row[iDate].trim()) : new Date();
       const { error } = await context.supabase.from("applications").insert({
         user_id: context.userId,
         url,
