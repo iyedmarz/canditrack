@@ -71,7 +71,34 @@ function DetailPage() {
           <StatusSelect value={c.statut} onChange={(s) => statusMut.mutate(s)} />
         </div>
 
+        <section className="mt-6 rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold">Skills / Technologies demandées</h2>
+            <button
+              onClick={() => skillsMut.mutate()}
+              disabled={skillsMut.isPending}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+            >
+              {skillsMut.isPending ? "…" : "Enregistrer"}
+            </button>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {skills.split(",").map((s) => s.trim()).filter(Boolean).map((s, i) => (
+              <span key={i} className="rounded-md bg-muted px-2 py-0.5 text-xs text-foreground">{s}</span>
+            ))}
+            {!skills.trim() && <span className="text-xs text-muted-foreground">Aucune compétence renseignée</span>}
+          </div>
+          <input
+            value={skills}
+            onChange={(e) => setSkills(e.target.value)}
+            placeholder="React, TypeScript, Node.js…"
+            className={`${INPUT} mt-3`}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">Séparez les compétences par des virgules.</p>
+        </section>
+
         <div className="mt-6 grid gap-6 md:grid-cols-2">
+
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold">Contact recruteur</h2>
             <div className="mt-3 space-y-2">
