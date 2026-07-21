@@ -4,29 +4,53 @@ import { z } from "zod";
 import { toDbStatus, toUiStatus } from "./status-map";
 import type { Candidature, CandidatureStatus } from "./mock-data";
 
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(2);
+  return `${dd}/${mm}/${yy}`;
+}
+function urlLabel(u: string | null | undefined): string {
+  if (!u) return "";
+  try {
+    const url = new URL(u);
+    return `${url.hostname.replace(/^www\./, "")}/…`;
+  } catch {
+    return u.slice(0, 40);
+  }
+}
+
 function mapApp(row: any, contacts: any[] = [], journal: any[] = []): Candidature {
+  const c = contacts[0];
   return {
     id: row.id,
     url: row.url ?? "",
+    urlLabel: urlLabel(row.url),
     poste: row.poste,
     societe: row.societe,
-    date: row.date_applied,
+    date: fmtDate(row.date_applied),
+    dateISO: row.date_applied,
     localisation: row.localisation ?? "",
     skills: (row.skills ?? "").split(",").map((s: string) => s.trim()).filter(Boolean),
-    status: toUiStatus(row.statut) as CandidatureStatus,
-    contacts: contacts.map((c) => ({
-      id: c.id,
-      nom: c.nom ?? "",
-      role: c.role ?? "",
-      email: c.email ?? undefined,
-      linkedin: c.linkedin ?? undefined,
-    })),
-    journal: journal.map((j) => ({
-      id: j.id,
-      date: j.created_at,
-      text: j.contenu,
-      source: j.type === "auto" ? "auto" : "manual",
-    })),
+    statut: toUiStatus(row.statut) as CandidatureStatus,
+    contact: c
+      ? {
+          name: c.nom ?? "",
+          role: c.role ?? "",
+          email: c.email ?? "",
+          linkedin: c.linkedin ?? undefined,
+        }
+      : undefined,
+    journal: journal
+      .slice()
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      .map((j) => ({
+        id: j.id,
+        date: j.created_at,
+        text: j.contenu,
+        source: j.type === "auto" ? "auto" : "manual",
+      })),
   };
 }
 
@@ -117,6 +141,52 @@ export const deleteApplication = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("applications").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const addJournalNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), text: z.string().trim().min(1).max(1000) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: app } = await context.supabase
+      .from("applications")
+      .select("id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!app) throw new Error("Not found");
+    const { error } = await context.supabase.from("journal_entries").insert({
+      application_id: data.id,
+      type: "manual",
+      contenu: data.text,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const upsertContact = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      application_id: z.string().uuid(),
+      nom: z.string().max(150).optional().default(""),
+      role: z.string().max(150).optional().default(""),
+      email: z.string().email().optional().or(z.literal("")),
+      linkedin: z.string().url().optional().or(z.literal("")),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    // Simple approach: delete existing, insert one
+    await context.supabase.from("contacts").delete().eq("application_id", data.application_id);
+    const { error } = await context.supabase.from("contacts").insert({
+      application_id: data.application_id,
+      nom: data.nom || null,
+      role: data.role || null,
+      email: data.email || null,
+      linkedin: data.linkedin || null,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
