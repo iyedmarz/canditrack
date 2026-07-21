@@ -70,7 +70,7 @@ export const importCsv = createServerFn({ method: "POST" })
       const url = iUrl >= 0 ? row[iUrl]?.trim() || null : null;
       const rawStatus = iStatut >= 0 ? row[iStatut]?.trim().toLowerCase() : "sent";
       const uiStatus = STATUS_MAP[rawStatus] ?? "sent";
-      const date = iDate >= 0 && row[iDate]?.trim() ? new Date(row[iDate].trim()) : new Date();
+      const date = iDate >= 0 && row[iDate]?.trim() ? parseDate(row[iDate].trim()) : new Date();
       const { error } = await context.supabase.from("applications").insert({
         user_id: context.userId,
         url,
