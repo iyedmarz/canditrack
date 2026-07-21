@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AppHeader } from "@/components/candid/AppHeader";
 import { StatusSelect } from "@/components/candid/StatusSelect";
 import {
-  getApplication, updateApplicationStatus, addJournalNote, upsertContact,
+  getApplication, updateApplicationStatus, addJournalNote, upsertContact, updateApplicationSkills,
 } from "@/lib/applications.functions";
 
 const appQuery = (id: string) =>
