@@ -230,7 +230,20 @@ function Dashboard() {
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30">
+                <tr
+                  key={c.id}
+                  className={`border-b border-border last:border-0 hover:bg-muted/30 ${selectMode && selected.has(c.id) ? "bg-muted/40" : ""}`}
+                >
+                  {selectMode && (
+                    <td className="px-4 py-2">
+                      <input
+                        type="checkbox"
+                        aria-label="Sélectionner"
+                        checked={selected.has(c.id)}
+                        onChange={() => toggleSelected(c.id)}
+                      />
+                    </td>
+                  )}
                   <td className="px-4 py-2">
                     {c.url ? (
                       <a href={c.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
@@ -269,7 +282,7 @@ function Dashboard() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={selectMode ? 10 : 9} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     Aucune candidature. Collez une URL pour commencer.
                   </td>
                 </tr>
