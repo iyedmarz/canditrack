@@ -40,6 +40,17 @@ function Dashboard() {
   const [url, setUrl] = useState("");
   const [extracting, setExtracting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const exitSelectMode = () => { setSelectMode(false); setSelected(new Set()); };
 
   const extractFn = useServerFn(extractFromUrl);
   const createFn = useServerFn(createApplication);
