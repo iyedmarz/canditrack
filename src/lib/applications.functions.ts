@@ -22,7 +22,13 @@ function urlLabel(u: string | null | undefined): string {
 }
 
 function mapApp(row: any, contacts: any[] = [], journal: any[] = []): Candidature {
-  const c = contacts[0];
+  const mappedContacts = (contacts ?? []).map((c) => ({
+    id: c.id,
+    name: c.nom ?? "",
+    role: c.role ?? "",
+    email: c.email ?? "",
+    linkedin: c.linkedin ?? undefined,
+  }));
   return {
     id: row.id,
     url: row.url ?? "",
@@ -34,14 +40,8 @@ function mapApp(row: any, contacts: any[] = [], journal: any[] = []): Candidatur
     localisation: row.localisation ?? "",
     skills: (row.skills ?? "").split(",").map((s: string) => s.trim()).filter(Boolean),
     statut: toUiStatus(row.statut) as CandidatureStatus,
-    contact: c
-      ? {
-          name: c.nom ?? "",
-          role: c.role ?? "",
-          email: c.email ?? "",
-          linkedin: c.linkedin ?? undefined,
-        }
-      : undefined,
+    contact: mappedContacts[0],
+    contacts: mappedContacts,
     journal: journal
       .slice()
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
