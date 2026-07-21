@@ -27,6 +27,7 @@ export type Candidature = {
   skills: string[];
   statut: CandidatureStatus;
   contact?: Contact;
+  contacts: Contact[];
   journal: JournalEntry[];
 };
 
