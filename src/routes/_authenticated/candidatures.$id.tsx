@@ -94,20 +94,10 @@ function DetailPage() {
         <div className="mt-6 grid gap-6 md:grid-cols-2">
 
           <section className="rounded-lg border border-border bg-card p-4">
-            <h2 className="text-sm font-semibold">Contact recruteur</h2>
-            <div className="mt-3 space-y-2">
-              <input placeholder="Nom" value={nom} onChange={(e) => setNom(e.target.value)} className={INPUT} />
-              <input placeholder="Rôle" value={role} onChange={(e) => setRole(e.target.value)} className={INPUT} />
-              <input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={INPUT} />
-              <input placeholder="LinkedIn URL" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className={INPUT} />
-              <button
-                onClick={() => contactMut.mutate()}
-                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
-              >
-                Enregistrer le contact
-              </button>
-            </div>
+            <h2 className="text-sm font-semibold">Contacts recruteurs</h2>
+            <ContactsManager applicationId={id} contacts={c.contacts ?? []} onChanged={invalidate} />
           </section>
+
 
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold">Journal</h2>
