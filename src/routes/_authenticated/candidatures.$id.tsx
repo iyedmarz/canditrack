@@ -28,6 +28,12 @@ function DetailPage() {
   const [role, setRole] = useState(c?.contact?.role ?? "");
   const [email, setEmail] = useState(c?.contact?.email ?? "");
   const [linkedin, setLinkedin] = useState(c?.contact?.linkedin ?? "");
+  const [skills, setSkills] = useState((c?.skills ?? []).join(", "));
+
+  const updateFn = useServerFn(updateApplicationStatus);
+  const noteFn = useServerFn(addJournalNote);
+  const contactFn = useServerFn(upsertContact);
+  const skillsFn = useServerFn(updateApplicationSkills);
 
   const updateFn = useServerFn(updateApplicationStatus);
   const noteFn = useServerFn(addJournalNote);
