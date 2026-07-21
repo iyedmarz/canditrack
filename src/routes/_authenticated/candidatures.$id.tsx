@@ -44,8 +44,6 @@ function DetailPage() {
     mutationFn: () => skillsFn({ data: { id, skills } }),
     onSuccess: invalidate,
   });
-    onSuccess: invalidate,
-  });
 
   if (!c) return <div className="p-8 text-sm">Introuvable</div>;
 
