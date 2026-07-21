@@ -40,6 +40,8 @@ function parseDate(s: string): Date {
     return new Date(yy, mm, dd);
   }
   return new Date(s);
+}
+
 
 const STATUS_MAP: Record<string, CandidatureStatus> = {
   envoyee: "sent", envoyée: "sent", sent: "sent",
