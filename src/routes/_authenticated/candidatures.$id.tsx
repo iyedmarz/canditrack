@@ -35,9 +35,6 @@ function DetailPage() {
   const contactFn = useServerFn(upsertContact);
   const skillsFn = useServerFn(updateApplicationSkills);
 
-  const updateFn = useServerFn(updateApplicationStatus);
-  const noteFn = useServerFn(addJournalNote);
-  const contactFn = useServerFn(upsertContact);
   const invalidate = () => qc.invalidateQueries({ queryKey: ["application", id] });
 
   const statusMut = useMutation({ mutationFn: (s: any) => updateFn({ data: { id, status: s } }), onSuccess: invalidate });
@@ -47,6 +44,10 @@ function DetailPage() {
   });
   const contactMut = useMutation({
     mutationFn: () => contactFn({ data: { application_id: id, nom, role, email, linkedin } }),
+    onSuccess: invalidate,
+  });
+  const skillsMut = useMutation({
+    mutationFn: () => skillsFn({ data: { id, skills } }),
     onSuccess: invalidate,
   });
 
