@@ -8,6 +8,7 @@ export type JournalEntry = {
 };
 
 export type Contact = {
+  id?: string;
   name: string;
   role: string;
   email: string;
