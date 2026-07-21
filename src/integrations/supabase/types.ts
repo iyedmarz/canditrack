@@ -14,7 +14,166 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          created_at: string
+          date_applied: string
+          id: string
+          localisation: string | null
+          poste: string
+          skills: string | null
+          societe: string
+          statut: string
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_applied?: string
+          id?: string
+          localisation?: string | null
+          poste: string
+          skills?: string | null
+          societe: string
+          statut?: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_applied?: string
+          id?: string
+          localisation?: string | null
+          poste?: string
+          skills?: string | null
+          societe?: string
+          statut?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          application_id: string
+          created_at: string
+          email: string | null
+          id: string
+          linkedin: string | null
+          nom: string | null
+          role: string | null
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          linkedin?: string | null
+          nom?: string | null
+          role?: string | null
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          linkedin?: string | null
+          nom?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          application_id: string
+          contenu: string
+          created_at: string
+          id: string
+          type: string
+        }
+        Insert: {
+          application_id: string
+          contenu: string
+          created_at?: string
+          id?: string
+          type: string
+        }
+        Update: {
+          application_id?: string
+          contenu?: string
+          created_at?: string
+          id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          dedicated_email: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          dedicated_email: string
+          email: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          dedicated_email?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      unmatched_email_logs: {
+        Row: {
+          id: string
+          reason: string | null
+          received_at: string
+          recipient: string | null
+          sender: string | null
+          subject: string | null
+        }
+        Insert: {
+          id?: string
+          reason?: string | null
+          received_at?: string
+          recipient?: string | null
+          sender?: string | null
+          subject?: string | null
+        }
+        Update: {
+          id?: string
+          reason?: string | null
+          received_at?: string
+          recipient?: string | null
+          sender?: string | null
+          subject?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
