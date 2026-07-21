@@ -8,6 +8,7 @@ export type JournalEntry = {
 };
 
 export type Contact = {
+  id?: string;
   name: string;
   role: string;
   email: string;
@@ -26,6 +27,7 @@ export type Candidature = {
   skills: string[];
   statut: CandidatureStatus;
   contact?: Contact;
+  contacts?: Contact[];
   journal: JournalEntry[];
 };
 

@@ -2,11 +2,14 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Trash2, Plus, Pencil, X, Check } from "lucide-react";
 import { AppHeader } from "@/components/candid/AppHeader";
 import { StatusSelect } from "@/components/candid/StatusSelect";
 import {
-  getApplication, updateApplicationStatus, addJournalNote, upsertContact, updateApplicationSkills,
+  getApplication, updateApplicationStatus, addJournalNote,
+  addContact, updateContact, deleteContact, updateApplicationSkills,
 } from "@/lib/applications.functions";
+import type { Contact } from "@/lib/mock-data";
 
 const appQuery = (id: string) =>
   queryOptions({ queryKey: ["application", id], queryFn: () => getApplication({ data: { id } }) });
@@ -24,15 +27,10 @@ function DetailPage() {
   const { data: c } = useSuspenseQuery(appQuery(id));
   const qc = useQueryClient();
   const [note, setNote] = useState("");
-  const [nom, setNom] = useState(c?.contact?.name ?? "");
-  const [role, setRole] = useState(c?.contact?.role ?? "");
-  const [email, setEmail] = useState(c?.contact?.email ?? "");
-  const [linkedin, setLinkedin] = useState(c?.contact?.linkedin ?? "");
   const [skills, setSkills] = useState((c?.skills ?? []).join(", "));
 
   const updateFn = useServerFn(updateApplicationStatus);
   const noteFn = useServerFn(addJournalNote);
-  const contactFn = useServerFn(upsertContact);
   const skillsFn = useServerFn(updateApplicationSkills);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["application", id] });
@@ -41,10 +39,6 @@ function DetailPage() {
   const noteMut = useMutation({
     mutationFn: () => noteFn({ data: { id, text: note } }),
     onSuccess: () => { setNote(""); invalidate(); },
-  });
-  const contactMut = useMutation({
-    mutationFn: () => contactFn({ data: { application_id: id, nom, role, email, linkedin } }),
-    onSuccess: invalidate,
   });
   const skillsMut = useMutation({
     mutationFn: () => skillsFn({ data: { id, skills } }),
@@ -100,20 +94,10 @@ function DetailPage() {
         <div className="mt-6 grid gap-6 md:grid-cols-2">
 
           <section className="rounded-lg border border-border bg-card p-4">
-            <h2 className="text-sm font-semibold">Contact recruteur</h2>
-            <div className="mt-3 space-y-2">
-              <input placeholder="Nom" value={nom} onChange={(e) => setNom(e.target.value)} className={INPUT} />
-              <input placeholder="Rôle" value={role} onChange={(e) => setRole(e.target.value)} className={INPUT} />
-              <input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={INPUT} />
-              <input placeholder="LinkedIn URL" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className={INPUT} />
-              <button
-                onClick={() => contactMut.mutate()}
-                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
-              >
-                Enregistrer le contact
-              </button>
-            </div>
+            <h2 className="text-sm font-semibold">Contacts recruteurs</h2>
+            <ContactsManager applicationId={id} contacts={c.contacts ?? []} onChanged={invalidate} />
           </section>
+
 
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold">Journal</h2>
@@ -143,3 +127,121 @@ function DetailPage() {
 }
 
 const INPUT = "w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:border-ring";
+
+function ContactsManager({
+  applicationId, contacts, onChanged,
+}: { applicationId: string; contacts: Contact[]; onChanged: () => void }) {
+  const addFn = useServerFn(addContact);
+  const updateFn = useServerFn(updateContact);
+  const deleteFn = useServerFn(deleteContact);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+
+  const addMut = useMutation({
+    mutationFn: (v: Omit<Contact, "id">) =>
+      addFn({ data: { application_id: applicationId, nom: v.name, role: v.role, email: v.email, linkedin: v.linkedin ?? "" } }),
+    onSuccess: () => { setAdding(false); onChanged(); },
+  });
+  const updateMut = useMutation({
+    mutationFn: (v: Contact) =>
+      updateFn({ data: { id: v.id!, nom: v.name, role: v.role, email: v.email, linkedin: v.linkedin ?? "" } }),
+    onSuccess: () => { setEditingId(null); onChanged(); },
+  });
+  const deleteMut = useMutation({
+    mutationFn: (cid: string) => deleteFn({ data: { id: cid } }),
+    onSuccess: onChanged,
+  });
+
+  return (
+    <div className="mt-3 space-y-3">
+      {contacts.length === 0 && !adding && (
+        <p className="text-xs text-muted-foreground">Aucun contact.</p>
+      )}
+      {contacts.map((ct) =>
+        editingId === ct.id ? (
+          <ContactForm
+            key={ct.id}
+            initial={ct}
+            submitLabel="Enregistrer"
+            pending={updateMut.isPending}
+            onCancel={() => setEditingId(null)}
+            onSubmit={(v) => updateMut.mutate({ ...v, id: ct.id })}
+          />
+        ) : (
+          <div key={ct.id} className="rounded-md border border-border p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium">{ct.name || "—"}</div>
+                {ct.role && <div className="text-xs text-muted-foreground">{ct.role}</div>}
+                {ct.email && <div className="mt-1 truncate text-xs"><a className="text-primary hover:underline" href={`mailto:${ct.email}`}>{ct.email}</a></div>}
+                {ct.linkedin && <div className="truncate text-xs"><a className="text-primary hover:underline" href={ct.linkedin} target="_blank" rel="noreferrer">LinkedIn</a></div>}
+              </div>
+              <div className="flex shrink-0 gap-1">
+                <button onClick={() => setEditingId(ct.id!)} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Modifier">
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => { if (confirm("Supprimer ce contact ?")) deleteMut.mutate(ct.id!); }} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-status-refused-fg" aria-label="Supprimer">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ),
+      )}
+      {adding ? (
+        <ContactForm
+          submitLabel="Ajouter"
+          pending={addMut.isPending}
+          onCancel={() => setAdding(false)}
+          onSubmit={(v) => addMut.mutate(v)}
+        />
+      ) : (
+        <button
+          onClick={() => setAdding(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground"
+        >
+          <Plus className="h-3.5 w-3.5" /> Ajouter un contact
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ContactForm({
+  initial, submitLabel, pending, onCancel, onSubmit,
+}: {
+  initial?: Contact;
+  submitLabel: string;
+  pending: boolean;
+  onCancel: () => void;
+  onSubmit: (v: { name: string; role: string; email: string; linkedin: string }) => void;
+}) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [role, setRole] = useState(initial?.role ?? "");
+  const [email, setEmail] = useState(initial?.email ?? "");
+  const [linkedin, setLinkedin] = useState(initial?.linkedin ?? "");
+  return (
+    <div className="space-y-2 rounded-md border border-border p-3">
+      <input placeholder="Nom" value={name} onChange={(e) => setName(e.target.value)} className={INPUT} />
+      <input placeholder="Rôle" value={role} onChange={(e) => setRole(e.target.value)} className={INPUT} />
+      <input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={INPUT} />
+      <input placeholder="LinkedIn URL" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className={INPUT} />
+      <div className="flex gap-2">
+        <button
+          disabled={pending}
+          onClick={() => onSubmit({ name, role, email, linkedin })}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+        >
+          <Check className="h-3.5 w-3.5" /> {pending ? "…" : submitLabel}
+        </button>
+        <button
+          onClick={onCancel}
+          className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted"
+        >
+          <X className="h-3.5 w-3.5" /> Annuler
+        </button>
+      </div>
+    </div>
+  );
+}
+
