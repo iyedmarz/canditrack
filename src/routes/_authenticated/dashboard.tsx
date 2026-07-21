@@ -163,12 +163,60 @@ function Dashboard() {
               </button>
             ))}
           </div>
+          <div className="ml-auto flex items-center gap-2">
+            {selectMode ? (
+              <>
+                <span className="text-xs text-muted-foreground">
+                  {selected.size} sélectionnée{selected.size > 1 ? "s" : ""}
+                </span>
+                <button
+                  onClick={() => {
+                    if (selected.size === 0) return;
+                    if (!confirm(`Supprimer ${selected.size} candidature(s) ?`)) return;
+                    const ids = Array.from(selected);
+                    Promise.all(ids.map((id) => deleteFn({ data: { id } })))
+                      .then(() => { exitSelectMode(); invalidate(); });
+                  }}
+                  disabled={selected.size === 0}
+                  className="inline-flex items-center gap-1 rounded-md bg-status-refused-fg px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Supprimer la sélection
+                </button>
+                <button
+                  onClick={exitSelectMode}
+                  className="inline-flex items-center gap-1 rounded-md border border-input bg-card px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                >
+                  <X className="h-3.5 w-3.5" /> Annuler
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setSelectMode(true)}
+                className="inline-flex items-center gap-1 rounded-md border border-input bg-card px-3 py-1.5 text-xs font-medium hover:bg-muted"
+              >
+                <CheckSquare className="h-3.5 w-3.5" /> Sélectionner
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/40 text-left text-xs uppercase text-muted-foreground">
               <tr>
+                {selectMode && (
+                  <th className="w-10 px-4 py-2">
+                    <input
+                      type="checkbox"
+                      aria-label="Tout sélectionner"
+                      checked={filtered.length > 0 && filtered.every((c) => selected.has(c.id))}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelected(new Set(filtered.map((c) => c.id)));
+                        else setSelected(new Set());
+                      }}
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-2 font-medium">URL</th>
                 <th className="px-4 py-2 font-medium">Poste</th>
                 <th className="px-4 py-2 font-medium">Société</th>
