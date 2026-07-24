@@ -44,9 +44,9 @@ function Onboarding() {
         </section>
 
         <section className="mt-6 rounded-lg border border-border bg-card p-5">
-          <h2 className="text-sm font-semibold">Option automatique : forwarding</h2>
+          <h2 className="text-sm font-semibold">Option automatique : Mailgun</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pour recevoir les réponses directement sans action de votre part, il faut un nom de domaine que vous possédez et un service de routage (Cloudflare Email Routing + Worker, ou Postmark Inbound).
+            Pour recevoir les réponses automatiquement, on utilise Mailgun (plan gratuit : 100 emails/jour). Il faut un domaine que vous possédez.
           </p>
           {email && (
             <div className="mt-4 rounded-md bg-muted p-3 text-xs text-muted-foreground">
@@ -54,9 +54,10 @@ function Onboarding() {
             </div>
           )}
           <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-            <li>Configurez un domaine et un service de réception d'emails.</li>
-            <li>Pointez le webhook vers <code className="rounded bg-muted px-1 text-foreground">/api/public/inbound-email</code> avec le secret <code className="rounded bg-muted px-1 text-foreground">INBOUND_EMAIL_SECRET</code>.</li>
-            <li>CandidTrack détecte la société via le domaine expéditeur et classifie le message (accusé, entretien, offre, refus).</li>
+            <li>Créez un compte Mailgun et ajoutez votre domaine (ex. <code className="rounded bg-muted px-1 text-foreground">mail.votredomaine.com</code>). Configurez les MX records fournis.</li>
+            <li>Dans Mailgun → <strong>Receiving</strong> → <strong>Create Route</strong>, filtrez sur votre domaine et ajoutez l'action <code className="rounded bg-muted px-1 text-foreground">forward("https://votre-app.lovable.app/api/public/inbound-email")</code>.</li>
+            <li>Copiez la <strong>HTTP webhook signing key</strong> (Settings → Webhooks) et enregistrez-la comme secret <code className="rounded bg-muted px-1 text-foreground">MAILGUN_SIGNING_KEY</code>.</li>
+            <li>CandidTrack vérifie la signature Mailgun, détecte la société via le domaine expéditeur, et classifie le message (accusé, entretien, offre, refus).</li>
           </ol>
         </section>
       </main>
