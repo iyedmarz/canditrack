@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { toDbStatus, toUiStatus } from "./status-map";
 import type { Candidature, CandidatureStatus } from "./mock-data";
+import { classifyEmail, summarizeForJournal } from "./classify-email";
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
