@@ -142,6 +142,7 @@ function Dashboard() {
           >
             Importer CSV
           </Link>
+          <EmailImportDrawer />
         </form>
         {error && <p className="mt-2 text-xs text-status-refused-fg">{error}</p>}
 
