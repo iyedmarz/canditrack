@@ -1,49 +1,106 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createHmac, timingSafeEqual } from "crypto";
 import { classifyEmail, summarizeForJournal } from "@/lib/classify-email";
 
 // Public inbound-email webhook.
-// Auth: shared secret in `x-webhook-secret` header (INBOUND_EMAIL_SECRET).
-// Expected body (JSON): { recipient, sender, subject, text }
-// - recipient = the dedicated user address (e.g. user-xxxx@mail.candidtrack.app)
-// - sender    = sending domain used to match societe
-// - subject / text = classification input
+// Supports two modes:
+//  1. Mailgun "Store and notify" / Routes webhook — multipart/form-data or
+//     application/x-www-form-urlencoded, verified via HMAC-SHA256 of
+//     `${timestamp}${token}` using MAILGUN_SIGNING_KEY.
+//  2. Legacy JSON payload with `x-webhook-secret: INBOUND_EMAIL_SECRET`.
+//     Body: { recipient, sender, subject, text }.
+
+type Parsed = {
+  recipient: string;
+  sender: string;
+  subject: string;
+  text: string;
+};
+
+function verifyMailgun(signingKey: string, timestamp: string, token: string, signature: string): boolean {
+  if (!timestamp || !token || !signature) return false;
+  // Reject stale (>5min) to prevent replay
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
+  const expected = createHmac("sha256", signingKey).update(timestamp + token).digest("hex");
+  try {
+    const a = Buffer.from(expected, "hex");
+    const b = Buffer.from(signature, "hex");
+    return a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
 export const Route = createFileRoute("/api/public/inbound-email")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env.INBOUND_EMAIL_SECRET;
-        if (!secret) return new Response("Server not configured", { status: 500 });
-        const provided = request.headers.get("x-webhook-secret");
-        if (provided !== secret) return new Response("Unauthorized", { status: 401 });
+        const mailgunKey = process.env.MAILGUN_SIGNING_KEY;
+        const sharedSecret = process.env.INBOUND_EMAIL_SECRET;
+        const contentType = request.headers.get("content-type") ?? "";
+
+        let parsed: Parsed | null = null;
+
+        if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
+          // Mailgun path
+          if (!mailgunKey) return new Response("Mailgun not configured", { status: 500 });
+          const form = await request.formData();
+          const timestamp = String(form.get("timestamp") ?? "");
+          const token = String(form.get("token") ?? "");
+          const signature = String(form.get("signature") ?? "");
+          if (!verifyMailgun(mailgunKey, timestamp, token, signature)) {
+            return new Response("Invalid signature", { status: 401 });
+          }
+          parsed = {
+            recipient: String(form.get("recipient") ?? form.get("To") ?? ""),
+            sender: String(form.get("sender") ?? form.get("from") ?? form.get("From") ?? ""),
+            subject: String(form.get("subject") ?? form.get("Subject") ?? ""),
+            text: String(form.get("body-plain") ?? form.get("stripped-text") ?? ""),
+          };
+        } else {
+          // Legacy JSON path
+          if (!sharedSecret) return new Response("Server not configured", { status: 500 });
+          const provided = request.headers.get("x-webhook-secret");
+          if (provided !== sharedSecret) return new Response("Unauthorized", { status: 401 });
+          let body: any;
+          try { body = await request.json(); } catch { return new Response("Bad JSON", { status: 400 }); }
+          parsed = {
+            recipient: String(body.recipient ?? ""),
+            sender: String(body.sender ?? ""),
+            subject: String(body.subject ?? ""),
+            text: String(body.text ?? ""),
+          };
+        }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        let body: any;
-        try { body = await request.json(); } catch { return new Response("Bad JSON", { status: 400 }); }
 
-        const recipient = String(body.recipient ?? "").toLowerCase().trim();
-        const sender = String(body.sender ?? "").toLowerCase().trim();
-        const subject = String(body.subject ?? "");
-        const text = String(body.text ?? "");
+        const recipient = parsed.recipient.toLowerCase().trim();
+        const sender = parsed.sender.toLowerCase().trim();
+        const subject = parsed.subject;
+        const text = parsed.text;
 
-        if (!recipient) {
+        // Extract bare email from "Name <email@x>" if present
+        const bareRecipient = recipient.match(/<([^>]+)>/)?.[1] ?? recipient;
+        const bareSender = sender.match(/<([^>]+)>/)?.[1] ?? sender;
+
+        if (!bareRecipient) {
           await supabaseAdmin.from("unmatched_email_logs").insert({
-            recipient, sender, subject, reason: "missing_recipient",
+            recipient: bareRecipient, sender: bareSender, subject, reason: "missing_recipient",
           });
           return Response.json({ ok: false, reason: "missing_recipient" }, { status: 400 });
         }
 
-        // Match user by dedicated email
         const { data: profile } = await supabaseAdmin
-          .from("profiles").select("id").eq("dedicated_email", recipient).maybeSingle();
+          .from("profiles").select("id").eq("dedicated_email", bareRecipient).maybeSingle();
         if (!profile) {
           await supabaseAdmin.from("unmatched_email_logs").insert({
-            recipient, sender, subject, reason: "no_user",
+            recipient: bareRecipient, sender: bareSender, subject, reason: "no_user",
           });
           return Response.json({ ok: false, reason: "no_user" }, { status: 200 });
         }
 
-        // Match application by sender domain (last part after @) vs societe or url
-        const domain = sender.split("@")[1] ?? "";
+        const domain = bareSender.split("@")[1] ?? "";
         const stem = domain.split(".").slice(-2, -1)[0] ?? "";
         const { data: apps } = await supabaseAdmin
           .from("applications")
@@ -58,7 +115,7 @@ export const Route = createFileRoute("/api/public/inbound-email")({
 
         if (!match) {
           await supabaseAdmin.from("unmatched_email_logs").insert({
-            recipient, sender, subject, reason: "no_application",
+            recipient: bareRecipient, sender: bareSender, subject, reason: "no_application",
           });
           return Response.json({ ok: false, reason: "no_application" }, { status: 200 });
         }
