@@ -7,6 +7,7 @@ import { StatCard } from "@/components/candid/StatCard";
 import { StatusSelect } from "@/components/candid/StatusSelect";
 import { ContactPopover } from "@/components/candid/ContactPopover";
 import { JournalDrawer } from "@/components/candid/JournalDrawer";
+import { EmailImportDrawer } from "@/components/candid/EmailImportDrawer";
 import { getStats, type Candidature, type CandidatureStatus } from "@/lib/mock-data";
 import {
   listApplications,
@@ -141,6 +142,7 @@ function Dashboard() {
           >
             Importer CSV
           </Link>
+          <EmailImportDrawer />
         </form>
         {error && <p className="mt-2 text-xs text-status-refused-fg">{error}</p>}
 

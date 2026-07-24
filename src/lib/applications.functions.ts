@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { toDbStatus, toUiStatus } from "./status-map";
 import type { Candidature, CandidatureStatus } from "./mock-data";
+import { classifyEmail, summarizeForJournal } from "./classify-email";
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
@@ -247,4 +248,46 @@ export const getProfile = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     return data;
+  });
+
+export const processInboundEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      sender: z.string().max(300),
+      subject: z.string().max(500),
+      text: z.string().max(20000),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const sender = data.sender.toLowerCase().trim();
+    const domain = sender.split("@")[1] ?? "";
+    const stem = domain.split(".").slice(-2, -1)[0] ?? "";
+
+    const { data: apps, error } = await context.supabase
+      .from("applications")
+      .select("id, societe, url, statut")
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+
+    const match = (apps ?? []).find((a) => {
+      const s = String(a.societe ?? "").toLowerCase();
+      const u = String(a.url ?? "").toLowerCase();
+      return (stem && (s.includes(stem) || u.includes(stem))) || (domain && u.includes(domain));
+    });
+
+    if (!match) return { ok: false, reason: "no_application" };
+
+    const classified = classifyEmail(`${data.subject}\n${data.text}`);
+    const contenu = `${summarizeForJournal(classified)}${data.subject ? ` — « ${data.subject.slice(0, 120)} »` : ""}`;
+    await context.supabase.from("journal_entries").insert({
+      application_id: match.id,
+      type: "auto",
+      contenu,
+    });
+    if (classified && classified !== match.statut) {
+      await context.supabase.from("applications").update({ statut: classified }).eq("id", match.id);
+    }
+
+    return { ok: true, application_id: match.id, status: classified };
   });
