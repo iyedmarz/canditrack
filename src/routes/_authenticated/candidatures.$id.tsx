@@ -276,3 +276,66 @@ function ContactForm({
   );
 }
 
+function DetailsForm({
+  initial, pending, error, onCancel, onSubmit,
+}: {
+  initial: { poste: string; societe: string; url: string; localisation: string; dateISO: string };
+  pending: boolean;
+  error?: string;
+  onCancel: () => void;
+  onSubmit: (v: { poste: string; societe: string; url: string; localisation: string; date_applied: string }) => void;
+}) {
+  const [poste, setPoste] = useState(initial.poste ?? "");
+  const [societe, setSociete] = useState(initial.societe ?? "");
+  const [url, setUrl] = useState(initial.url ?? "");
+  const [localisation, setLocalisation] = useState(initial.localisation ?? "");
+  const [date, setDate] = useState(() => {
+    const d = new Date(initial.dateISO);
+    if (isNaN(d.getTime())) return "";
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  return (
+    <div className="w-full space-y-2 rounded-lg border border-border bg-card p-4">
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted-foreground">Poste *</span>
+          <input value={poste} onChange={(e) => setPoste(e.target.value)} className={INPUT} />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted-foreground">Société *</span>
+          <input value={societe} onChange={(e) => setSociete(e.target.value)} className={INPUT} />
+        </label>
+        <label className="block sm:col-span-2">
+          <span className="mb-1 block text-[11px] font-medium text-muted-foreground">URL de l'offre</span>
+          <input value={url} onChange={(e) => setUrl(e.target.value)} className={INPUT} placeholder="https://…" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted-foreground">Localisation</span>
+          <input value={localisation} onChange={(e) => setLocalisation(e.target.value)} className={INPUT} />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-medium text-muted-foreground">Date de candidature</span>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={INPUT} />
+        </label>
+      </div>
+      {error && <p className="text-xs text-status-refused-fg">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          disabled={pending || !poste.trim() || !societe.trim() || !date}
+          onClick={() => onSubmit({ poste: poste.trim(), societe: societe.trim(), url: url.trim(), localisation: localisation.trim(), date_applied: date })}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+        >
+          <Check className="h-3.5 w-3.5" /> {pending ? "…" : "Enregistrer"}
+        </button>
+        <button
+          onClick={onCancel}
+          className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted"
+        >
+          <X className="h-3.5 w-3.5" /> Annuler
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
