@@ -29,10 +29,12 @@ function DetailPage() {
   const qc = useQueryClient();
   const [note, setNote] = useState("");
   const [skills, setSkills] = useState((c?.skills ?? []).join(", "));
+  const [editing, setEditing] = useState(false);
 
   const updateFn = useServerFn(updateApplicationStatus);
   const noteFn = useServerFn(addJournalNote);
   const skillsFn = useServerFn(updateApplicationSkills);
+  const detailsFn = useServerFn(updateApplicationDetails);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["application", id] });
 
@@ -45,6 +47,11 @@ function DetailPage() {
     mutationFn: () => skillsFn({ data: { id, skills } }),
     onSuccess: invalidate,
   });
+  const detailsMut = useMutation({
+    mutationFn: (v: { poste: string; societe: string; url: string; localisation: string; date_applied: string }) =>
+      detailsFn({ data: { id, ...v } }),
+    onSuccess: () => { setEditing(false); invalidate(); },
+  });
 
   if (!c) return <div className="p-8 text-sm">Introuvable</div>;
 
@@ -54,17 +61,40 @@ function DetailPage() {
       <main className="mx-auto max-w-4xl px-6 py-6">
         <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground">← Retour</Link>
         <div className="mt-2 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold">{c.poste}</h1>
-            <p className="text-sm text-muted-foreground">{c.societe} · {c.localisation || "—"}</p>
-            {c.url && (
-              <a href={c.url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary hover:underline">
-                {c.urlLabel}
-              </a>
-            )}
-          </div>
-          <StatusSelect value={c.statut} onChange={(s) => statusMut.mutate(s)} />
+          {editing ? (
+            <DetailsForm
+              initial={c}
+              pending={detailsMut.isPending}
+              error={(detailsMut.error as any)?.message}
+              onCancel={() => setEditing(false)}
+              onSubmit={(v) => detailsMut.mutate(v)}
+            />
+          ) : (
+            <>
+              <div>
+                <h1 className="text-xl font-semibold">{c.poste}</h1>
+                <p className="text-sm text-muted-foreground">{c.societe} · {c.localisation || "—"}</p>
+                <p className="text-xs text-muted-foreground">Candidature du {c.date}</p>
+                {c.url && (
+                  <a href={c.url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary hover:underline">
+                    {c.urlLabel}
+                  </a>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={() => setEditing(true)}
+                  className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-muted"
+                  aria-label="Modifier les informations"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Modifier
+                </button>
+                <StatusSelect value={c.statut} onChange={(s) => statusMut.mutate(s)} />
+              </div>
+            </>
+          )}
         </div>
+
 
         <section className="mt-6 rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
