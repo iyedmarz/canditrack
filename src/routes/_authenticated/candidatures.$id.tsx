@@ -8,6 +8,7 @@ import { StatusSelect } from "@/components/candid/StatusSelect";
 import {
   getApplication, updateApplicationStatus, addJournalNote,
   addContact, updateContact, deleteContact, updateApplicationSkills,
+  updateApplicationDetails,
 } from "@/lib/applications.functions";
 import type { Contact } from "@/lib/mock-data";
 
