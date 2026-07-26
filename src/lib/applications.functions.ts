@@ -151,6 +151,38 @@ export const updateApplicationSkills = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const UpdateDetailsInput = z.object({
+  id: z.string().uuid(),
+  poste: z.string().trim().min(1).max(200),
+  societe: z.string().trim().min(1).max(200),
+  url: z.preprocess((v) => {
+    if (typeof v !== "string") return v;
+    const s = v.trim();
+    if (!s) return "";
+    return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+  }, z.union([z.literal(""), z.string().url()]).optional().default("")),
+  localisation: z.string().max(200).optional().default(""),
+  date_applied: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date invalide"),
+});
+
+export const updateApplicationDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => UpdateDetailsInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("applications")
+      .update({
+        poste: data.poste,
+        societe: data.societe,
+        url: data.url || null,
+        localisation: data.localisation || null,
+        date_applied: new Date(data.date_applied).toISOString(),
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const deleteApplication = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
