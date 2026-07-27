@@ -58,7 +58,7 @@ function JobsPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!what.trim()) return;
-    searchMut.mutate({ what: what.trim(), where: where.trim(), contract });
+    searchMut.mutate({ what: what.trim(), where: where.trim(), contract, freshness, sort });
   };
 
   return (
