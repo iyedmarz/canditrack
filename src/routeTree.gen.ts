@@ -15,7 +15,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedStatsRouteImport } from './routes/_authenticated/stats'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
-import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
@@ -49,11 +48,6 @@ const AuthenticatedStatsRoute = AuthenticatedStatsRouteImport.update({
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
@@ -90,7 +84,6 @@ export interface FileRoutesByFullPath {
   '/add': typeof AuthenticatedAddRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/import': typeof AuthenticatedImportRoute
-  '/jobs': typeof AuthenticatedJobsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/stats': typeof AuthenticatedStatsRoute
   '/candidatures/$id': typeof AuthenticatedCandidaturesIdRoute
@@ -103,7 +96,6 @@ export interface FileRoutesByTo {
   '/add': typeof AuthenticatedAddRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/import': typeof AuthenticatedImportRoute
-  '/jobs': typeof AuthenticatedJobsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/stats': typeof AuthenticatedStatsRoute
   '/candidatures/$id': typeof AuthenticatedCandidaturesIdRoute
@@ -118,7 +110,6 @@ export interface FileRoutesById {
   '/_authenticated/add': typeof AuthenticatedAddRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
-  '/_authenticated/jobs': typeof AuthenticatedJobsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/stats': typeof AuthenticatedStatsRoute
   '/_authenticated/candidatures/$id': typeof AuthenticatedCandidaturesIdRoute
@@ -133,7 +124,6 @@ export interface FileRouteTypes {
     | '/add'
     | '/dashboard'
     | '/import'
-    | '/jobs'
     | '/onboarding'
     | '/stats'
     | '/candidatures/$id'
@@ -146,7 +136,6 @@ export interface FileRouteTypes {
     | '/add'
     | '/dashboard'
     | '/import'
-    | '/jobs'
     | '/onboarding'
     | '/stats'
     | '/candidatures/$id'
@@ -160,7 +149,6 @@ export interface FileRouteTypes {
     | '/_authenticated/add'
     | '/_authenticated/dashboard'
     | '/_authenticated/import'
-    | '/_authenticated/jobs'
     | '/_authenticated/onboarding'
     | '/_authenticated/stats'
     | '/_authenticated/candidatures/$id'
@@ -219,13 +207,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/jobs': {
-      id: '/_authenticated/jobs'
-      path: '/jobs'
-      fullPath: '/jobs'
-      preLoaderRoute: typeof AuthenticatedJobsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/import': {
       id: '/_authenticated/import'
       path: '/import'
@@ -268,7 +249,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAddRoute: typeof AuthenticatedAddRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
-  AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedStatsRoute: typeof AuthenticatedStatsRoute
   AuthenticatedCandidaturesIdRoute: typeof AuthenticatedCandidaturesIdRoute
@@ -278,7 +258,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAddRoute: AuthenticatedAddRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
-  AuthenticatedJobsRoute: AuthenticatedJobsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedStatsRoute: AuthenticatedStatsRoute,
   AuthenticatedCandidaturesIdRoute: AuthenticatedCandidaturesIdRoute,
