@@ -72,7 +72,7 @@ function JobsPage() {
           </p>
         </div>
 
-        <form onSubmit={submit} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_180px_140px]">
+        <form onSubmit={submit} className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_160px_160px_160px_140px]">
           <input
             value={what} onChange={(e) => setWhat(e.target.value)}
             placeholder="Nom de poste (ex. Développeur React)"
@@ -92,6 +92,24 @@ function JobsPage() {
             <option value="cdd">CDD</option>
             <option value="stage">Stage</option>
             <option value="alternance">Alternance</option>
+          </select>
+          <select
+            value={freshness} onChange={(e) => setFreshness(e.target.value as Freshness)}
+            className="rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring"
+            title="Ancienneté des offres"
+          >
+            <option value="all">Toutes dates</option>
+            <option value="1">Dernières 24h</option>
+            <option value="7">Dernière semaine</option>
+            <option value="30">Dernier mois</option>
+          </select>
+          <select
+            value={sort} onChange={(e) => setSort(e.target.value as Sort)}
+            className="rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring"
+            title="Tri"
+          >
+            <option value="date">Plus récentes</option>
+            <option value="relevance">Pertinence</option>
           </select>
           <button
             type="submit" disabled={searchMut.isPending}
