@@ -8,6 +8,8 @@ import { createApplication } from "@/lib/applications.functions";
 import { ExternalLink, Check, Plus, Search } from "lucide-react";
 
 type Contract = "all" | "cdi" | "cdd" | "stage" | "alternance";
+type Freshness = "all" | "1" | "7" | "30";
+type Sort = "date" | "relevance";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({ meta: [{ title: "Rechercher des offres — CandidTrack" }] }),
