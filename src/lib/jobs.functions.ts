@@ -8,6 +8,8 @@ const SearchInput = z.object({
   contract: z.enum(["all", "cdi", "cdd", "stage", "alternance"]).optional().default("all"),
   page: z.number().int().min(1).max(20).optional().default(1),
   country: z.string().length(2).optional().default("fr"),
+  maxDaysOld: z.number().int().min(1).max(365).optional(),
+  sort: z.enum(["date", "relevance"]).optional().default("date"),
 });
 
 export type JobResult = {
@@ -80,6 +82,8 @@ export const searchJobs = createServerFn({ method: "POST" })
       "content-type": "application/json",
     });
     if (data.where) params.set("where", data.where);
+    if (data.maxDaysOld) params.set("max_days_old", String(data.maxDaysOld));
+    params.set("sort_by", data.sort === "date" ? "date" : "relevance");
     // Adzuna hint for CDI-like roles
     if (data.contract === "cdi") params.set("contract_type", "permanent");
     if (data.contract === "cdd") params.set("contract_type", "contract");

@@ -8,6 +8,8 @@ import { createApplication } from "@/lib/applications.functions";
 import { ExternalLink, Check, Plus, Search } from "lucide-react";
 
 type Contract = "all" | "cdi" | "cdd" | "stage" | "alternance";
+type Freshness = "all" | "1" | "7" | "30";
+type Sort = "date" | "relevance";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({ meta: [{ title: "Rechercher des offres — CandidTrack" }] }),
@@ -22,14 +24,16 @@ function JobsPage() {
   const [what, setWhat] = useState("");
   const [where, setWhere] = useState("");
   const [contract, setContract] = useState<Contract>("all");
+  const [freshness, setFreshness] = useState<Freshness>("all");
+  const [sort, setSort] = useState<Sort>("date");
   const [results, setResults] = useState<JobResult[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<Set<string>>(new Set());
 
   const searchMut = useMutation({
-    mutationFn: (v: { what: string; where: string; contract: Contract }) =>
-      searchFn({ data: { ...v, page: 1 } }),
+    mutationFn: (v: { what: string; where: string; contract: Contract; freshness: Freshness; sort: Sort }) =>
+      searchFn({ data: { what: v.what, where: v.where, contract: v.contract, page: 1, sort: v.sort, ...(v.freshness !== "all" ? { maxDaysOld: Number(v.freshness) } : {}) } }),
     onSuccess: (r) => { setResults(r.results); setTotal(r.total); setError(null); },
     onError: (e: any) => setError(e?.message ?? "Recherche impossible"),
   });
@@ -54,7 +58,7 @@ function JobsPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!what.trim()) return;
-    searchMut.mutate({ what: what.trim(), where: where.trim(), contract });
+    searchMut.mutate({ what: what.trim(), where: where.trim(), contract, freshness, sort });
   };
 
   return (
@@ -68,7 +72,7 @@ function JobsPage() {
           </p>
         </div>
 
-        <form onSubmit={submit} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_180px_140px]">
+        <form onSubmit={submit} className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_160px_160px_160px_140px]">
           <input
             value={what} onChange={(e) => setWhat(e.target.value)}
             placeholder="Nom de poste (ex. Développeur React)"
@@ -88,6 +92,24 @@ function JobsPage() {
             <option value="cdd">CDD</option>
             <option value="stage">Stage</option>
             <option value="alternance">Alternance</option>
+          </select>
+          <select
+            value={freshness} onChange={(e) => setFreshness(e.target.value as Freshness)}
+            className="rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring"
+            title="Ancienneté des offres"
+          >
+            <option value="all">Toutes dates</option>
+            <option value="1">Dernières 24h</option>
+            <option value="7">Dernière semaine</option>
+            <option value="30">Dernier mois</option>
+          </select>
+          <select
+            value={sort} onChange={(e) => setSort(e.target.value as Sort)}
+            className="rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring"
+            title="Tri"
+          >
+            <option value="date">Plus récentes</option>
+            <option value="relevance">Pertinence</option>
           </select>
           <button
             type="submit" disabled={searchMut.isPending}
