@@ -82,6 +82,8 @@ export const searchJobs = createServerFn({ method: "POST" })
       "content-type": "application/json",
     });
     if (data.where) params.set("where", data.where);
+    if (data.maxDaysOld) params.set("max_days_old", String(data.maxDaysOld));
+    params.set("sort_by", data.sort === "date" ? "date" : "relevance");
     // Adzuna hint for CDI-like roles
     if (data.contract === "cdi") params.set("contract_type", "permanent");
     if (data.contract === "cdd") params.set("contract_type", "contract");
