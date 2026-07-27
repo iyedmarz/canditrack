@@ -24,14 +24,16 @@ function JobsPage() {
   const [what, setWhat] = useState("");
   const [where, setWhere] = useState("");
   const [contract, setContract] = useState<Contract>("all");
+  const [freshness, setFreshness] = useState<Freshness>("all");
+  const [sort, setSort] = useState<Sort>("date");
   const [results, setResults] = useState<JobResult[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState<Set<string>>(new Set());
 
   const searchMut = useMutation({
-    mutationFn: (v: { what: string; where: string; contract: Contract }) =>
-      searchFn({ data: { ...v, page: 1 } }),
+    mutationFn: (v: { what: string; where: string; contract: Contract; freshness: Freshness; sort: Sort }) =>
+      searchFn({ data: { what: v.what, where: v.where, contract: v.contract, page: 1, sort: v.sort, ...(v.freshness !== "all" ? { maxDaysOld: Number(v.freshness) } : {}) } }),
     onSuccess: (r) => { setResults(r.results); setTotal(r.total); setError(null); },
     onError: (e: any) => setError(e?.message ?? "Recherche impossible"),
   });
