@@ -8,6 +8,8 @@ const SearchInput = z.object({
   contract: z.enum(["all", "cdi", "cdd", "stage", "alternance"]).optional().default("all"),
   page: z.number().int().min(1).max(20).optional().default(1),
   country: z.string().length(2).optional().default("fr"),
+  maxDaysOld: z.number().int().min(1).max(365).optional(),
+  sort: z.enum(["date", "relevance"]).optional().default("date"),
 });
 
 export type JobResult = {
