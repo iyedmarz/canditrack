@@ -31,6 +31,7 @@ export function AppHeader() {
           </Link>
           <nav className="flex items-center gap-1 text-sm">
             <NavItem to="/dashboard">Candidatures</NavItem>
+            <NavItem to="/jobs">Offres</NavItem>
             <NavItem to="/stats">Statistiques</NavItem>
             <NavItem to="/onboarding">Configuration email</NavItem>
           </nav>
