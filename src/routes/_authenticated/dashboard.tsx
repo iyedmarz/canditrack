@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -35,7 +35,6 @@ function Dashboard() {
   const { data: items } = useSuspenseQuery(applicationsQuery);
   const qc = useQueryClient();
   const router = useRouter();
-  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | CandidatureStatus>("all");
   const [url, setUrl] = useState("");
@@ -87,7 +86,7 @@ function Dashboard() {
     setError(null); setExtracting(true);
     try {
       const info = await extractFn({ data: { url: url.trim() } });
-      const { id } = await createFn({
+      await createFn({
         data: {
           url: url.trim(),
           poste: info.poste,
@@ -98,8 +97,7 @@ function Dashboard() {
         },
       });
       setUrl("");
-      invalidate();
-      navigate({ to: "/candidatures/$id", params: { id } });
+      await invalidate();
     } catch (err: any) {
       setError(err?.message ?? "Extraction impossible");
     } finally {
