@@ -24,10 +24,10 @@ function AddPage() {
     e.preventDefault();
     setError(null); setLoading(true);
     try {
-      const { id } = await createFn({
+      await createFn({
         data: { poste, societe, url, localisation, skills, status: "sent" },
       });
-      navigate({ to: "/candidatures/$id", params: { id } });
+      navigate({ to: "/dashboard" });
     } catch (err: any) {
       setError(err?.message ?? "Erreur");
     } finally { setLoading(false); }
