@@ -84,12 +84,13 @@ function Dashboard() {
   const submitExtract = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    setError(null); setExtracting(true);
+    setError(null); setPendingUrl(url.trim()); setExtracting(true);
+    setUrl("");
     try {
       const info = await extractFn({ data: { url: url.trim() } });
       await createFn({
         data: {
-          url: url.trim(),
+          url: pendingUrl || url.trim(),
           poste: info.poste,
           societe: info.societe,
           localisation: info.localisation,
@@ -97,13 +98,14 @@ function Dashboard() {
           status: "sent",
         },
       });
-      setUrl("");
       await invalidate();
     } catch (err: any) {
       setError(err?.message ?? "Extraction impossible");
     } finally {
       setExtracting(false);
+      setPendingUrl("");
     }
+
   };
 
   return (
