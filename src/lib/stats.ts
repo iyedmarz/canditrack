@@ -91,11 +91,11 @@ export function getStatusBreakdown(items: Candidature[]): StatusSlice[] {
   }
 
   return [
-    { key: "waiting", label: "En attente", value: waiting, color: "hsl(var(--chart-waiting))" },
-    { key: "interview", label: "Entretien", value: interview, color: "hsl(var(--chart-interview))" },
-    { key: "offer", label: "Offre", value: offer, color: "hsl(var(--chart-offer))" },
-    { key: "refused", label: "Refusé", value: refused, color: "hsl(var(--chart-refused))" },
-    { key: "none", label: "Sans réponse", value: noResponse, color: "hsl(var(--chart-none))" },
+    { key: "waiting", label: "En attente", value: waiting, color: "var(--chart-waiting)" },
+    { key: "interview", label: "Entretien", value: interview, color: "var(--chart-interview)" },
+    { key: "offer", label: "Offre", value: offer, color: "var(--chart-offer)" },
+    { key: "refused", label: "Refusé", value: refused, color: "var(--chart-refused)" },
+    { key: "none", label: "Sans réponse", value: noResponse, color: "var(--chart-none)" },
   ];
 }
 
