@@ -7,6 +7,7 @@ import { StatCard } from "@/components/candid/StatCard";
 import { StatusSelect } from "@/components/candid/StatusSelect";
 import { ContactPopover } from "@/components/candid/ContactPopover";
 import { JournalDrawer } from "@/components/candid/JournalDrawer";
+import { ConfirmDialog } from "@/components/candid/ConfirmDialog";
 
 import { getStats, type Candidature, type CandidatureStatus } from "@/lib/mock-data";
 import {
@@ -43,6 +44,8 @@ function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmSingle, setConfirmSingle] = useState<string | null>(null);
+  const [confirmBulk, setConfirmBulk] = useState(false);
 
   const toggleSelected = (id: string) => {
     setSelected((prev) => {
@@ -164,10 +167,7 @@ function Dashboard() {
                 <button
                   onClick={() => {
                     if (selected.size === 0) return;
-                    if (!confirm(`Supprimer ${selected.size} candidature(s) ?`)) return;
-                    const ids = Array.from(selected);
-                    Promise.all(ids.map((id) => deleteFn({ data: { id } })))
-                      .then(() => { exitSelectMode(); invalidate(); });
+                    setConfirmBulk(true);
                   }}
                   disabled={selected.size === 0}
                   className="inline-flex items-center gap-1 rounded-md bg-status-refused-fg px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
@@ -305,7 +305,7 @@ function Dashboard() {
                   </td>
                   <td className="px-4 py-2 text-right">
                     <button
-                      onClick={() => { if (confirm("Supprimer ?")) deleteMut.mutate(c.id); }}
+                      onClick={() => setConfirmSingle(c.id)}
                       className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-status-refused-fg"
                       aria-label="Supprimer"
                     >
@@ -324,6 +324,34 @@ function Dashboard() {
             </tbody>
           </table>
         </div>
+
+        <ConfirmDialog
+          open={!!confirmSingle}
+          onOpenChange={(v) => !v && setConfirmSingle(null)}
+          title="Supprimer la candidature"
+          description="Cette action est définitive. La candidature sera supprimée de votre liste."
+          confirmText="Supprimer"
+          destructive
+          onConfirm={() => {
+            if (confirmSingle) deleteMut.mutate(confirmSingle);
+            setConfirmSingle(null);
+          }}
+        />
+
+        <ConfirmDialog
+          open={confirmBulk}
+          onOpenChange={setConfirmBulk}
+          title="Supprimer la sélection"
+          description={`Vous êtes sur le point de supprimer ${selected.size} candidature(s). Cette action est définitive.`}
+          confirmText="Supprimer la sélection"
+          destructive
+          onConfirm={() => {
+            const ids = Array.from(selected);
+            Promise.all(ids.map((id) => deleteFn({ data: { id } })))
+              .then(() => { exitSelectMode(); invalidate(); });
+            setConfirmBulk(false);
+          }}
+        />
       </main>
     </div>
   );

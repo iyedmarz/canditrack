@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Trash2, Plus, Pencil, X, Check } from "lucide-react";
 import { AppHeader } from "@/components/candid/AppHeader";
 import { StatusSelect } from "@/components/candid/StatusSelect";
+import { ConfirmDialog } from "@/components/candid/ConfirmDialog";
 import {
   getApplication, updateApplicationStatus, addJournalNote,
   addContact, updateContact, deleteContact, updateApplicationSkills,
@@ -167,6 +168,7 @@ function ContactsManager({
   const deleteFn = useServerFn(deleteContact);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
 
   const addMut = useMutation({
     mutationFn: (v: Omit<Contact, "id">) =>
@@ -211,7 +213,7 @@ function ContactsManager({
                 <button onClick={() => setEditingId(ct.id!)} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Modifier">
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
-                <button onClick={() => { if (confirm("Supprimer ce contact ?")) deleteMut.mutate(ct.id!); }} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-status-refused-fg" aria-label="Supprimer">
+                <button onClick={() => setConfirmDelete({ id: ct.id!, name: ct.name || "ce contact" })} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-status-refused-fg" aria-label="Supprimer">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -234,6 +236,19 @@ function ContactsManager({
           <Plus className="h-3.5 w-3.5" /> Ajouter un contact
         </button>
       )}
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(v) => !v && setConfirmDelete(null)}
+        title="Supprimer le contact"
+        description={`Le contact « ${confirmDelete?.name} » sera supprimé définitivement.`}
+        confirmText="Supprimer"
+        destructive
+        onConfirm={() => {
+          if (confirmDelete) deleteMut.mutate(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
     </div>
   );
 }
