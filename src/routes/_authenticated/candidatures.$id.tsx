@@ -213,7 +213,7 @@ function ContactsManager({
                 <button onClick={() => setEditingId(ct.id!)} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Modifier">
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
-                <button onClick={() => { if (confirm("Supprimer ce contact ?")) deleteMut.mutate(ct.id!); }} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-status-refused-fg" aria-label="Supprimer">
+                <button onClick={() => setConfirmDelete({ id: ct.id!, name: ct.name || "ce contact" })} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-status-refused-fg" aria-label="Supprimer">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
