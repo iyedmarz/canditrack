@@ -168,6 +168,7 @@ function ContactsManager({
   const deleteFn = useServerFn(deleteContact);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
 
   const addMut = useMutation({
     mutationFn: (v: Omit<Contact, "id">) =>
