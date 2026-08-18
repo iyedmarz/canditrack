@@ -202,11 +202,27 @@ export const mockCandidatures: Candidature[] = [
   },
 ];
 
+function everReached(c: Candidature, kind: "interview" | "offer") {
+  const cur = c.statut;
+  if (kind === "interview" && (cur === "interview" || cur === "offer")) return true;
+  if (kind === "offer" && cur === "offer") return true;
+  const patterns =
+    kind === "interview"
+      ? ["entretien", "interview"]
+      : ["offre", "offer", "embauche"];
+  return (c.journal ?? []).some((j) => {
+    const t = (j.text ?? "").toLowerCase();
+    return patterns.some((p) => t.includes(p));
+  });
+}
+
 export function getStats(items: Candidature[]) {
   const total = items.length;
   const responded = items.filter((c) => c.statut !== "sent").length;
-  const interviews = items.filter((c) => c.statut === "interview" || c.statut === "offer").length;
-  const offers = items.filter((c) => c.statut === "offer").length;
+  // Historique : un entretien passé reste compté même si la candidature a été refusée ensuite
+  const interviews = items.filter((c) => everReached(c, "interview")).length;
+  const offers = items.filter((c) => everReached(c, "offer")).length;
   const rate = total === 0 ? 0 : Math.round((responded / total) * 100);
   return { total, rate, interviews, offers };
 }
+
