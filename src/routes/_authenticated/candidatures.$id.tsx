@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Trash2, Plus, Pencil, X, Check } from "lucide-react";
 import { AppHeader } from "@/components/candid/AppHeader";
 import { StatusSelect } from "@/components/candid/StatusSelect";
+import { ConfirmDialog } from "@/components/candid/ConfirmDialog";
 import {
   getApplication, updateApplicationStatus, addJournalNote,
   addContact, updateContact, deleteContact, updateApplicationSkills,
