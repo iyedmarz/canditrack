@@ -222,7 +222,31 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
+              {!extracting && (
+                <tr className="border-b border-border bg-muted/10">
+                  {selectMode && <td className="px-4 py-2" />}
+                  <td className="px-4 py-2" colSpan={selectMode ? 9 : 9}>
+                    <input
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      onPaste={(e) => {
+                        const pasted = e.clipboardData.getData("text");
+                        if (pasted?.trim().startsWith("http")) {
+                          e.preventDefault();
+                          runExtract(pasted);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); runExtract(url); }
+                      }}
+                      placeholder="Coller l'URL d'une offre ici — analyse automatique…"
+                      className="w-full rounded-md border border-dashed border-input bg-background px-3 py-1.5 text-sm outline-none focus:border-ring"
+                    />
+                  </td>
+                </tr>
+              )}
               {extracting && (
+
                 <tr className="border-b border-border bg-muted/20">
                   {selectMode && <td className="px-4 py-2" />}
                   <td className="px-4 py-2 max-w-[180px] truncate text-primary">{pendingUrl}</td>
