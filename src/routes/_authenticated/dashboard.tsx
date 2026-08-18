@@ -81,10 +81,9 @@ function Dashboard() {
     onSuccess: invalidate,
   });
 
-  const submitExtract = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const target = url.trim();
-    if (!target) return;
+  const runExtract = async (raw: string) => {
+    const target = raw.trim();
+    if (!target || extracting) return;
     setError(null); setPendingUrl(target); setExtracting(true);
     setUrl("");
     try {
@@ -106,7 +105,6 @@ function Dashboard() {
       setExtracting(false);
       setPendingUrl("");
     }
-
   };
 
   return (
@@ -120,18 +118,7 @@ function Dashboard() {
           <StatCard label="Offres reçues" value={String(stats.offers)} />
         </div>
 
-        <form onSubmit={submitExtract} className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <input
-            value={url} onChange={(e) => setUrl(e.target.value)}
-            placeholder="Coller l'URL d'une offre…"
-            className="flex-1 rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring"
-          />
-          <button
-            type="submit" disabled={extracting}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
-          >
-            {extracting ? "Extraction…" : "+ Extraire et ajouter"}
-          </button>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Link
             to="/add"
             className="rounded-md border border-input bg-card px-4 py-2 text-sm font-medium hover:bg-muted text-center"
@@ -145,7 +132,9 @@ function Dashboard() {
             Importer CSV
           </Link>
           <EmailImportDrawer />
-        </form>
+        </div>
+        {error && <p className="mt-2 text-xs text-status-refused-fg">{error}</p>}
+
         {error && <p className="mt-2 text-xs text-status-refused-fg">{error}</p>}
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -233,7 +222,31 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
+              {!extracting && (
+                <tr className="border-b border-border bg-muted/10">
+                  {selectMode && <td className="px-4 py-2" />}
+                  <td className="px-4 py-2" colSpan={selectMode ? 9 : 9}>
+                    <input
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      onPaste={(e) => {
+                        const pasted = e.clipboardData.getData("text");
+                        if (pasted?.trim().startsWith("http")) {
+                          e.preventDefault();
+                          runExtract(pasted);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); runExtract(url); }
+                      }}
+                      placeholder="Coller l'URL d'une offre ici — analyse automatique…"
+                      className="w-full rounded-md border border-dashed border-input bg-background px-3 py-1.5 text-sm outline-none focus:border-ring"
+                    />
+                  </td>
+                </tr>
+              )}
               {extracting && (
+
                 <tr className="border-b border-border bg-muted/20">
                   {selectMode && <td className="px-4 py-2" />}
                   <td className="px-4 py-2 max-w-[180px] truncate text-primary">{pendingUrl}</td>
