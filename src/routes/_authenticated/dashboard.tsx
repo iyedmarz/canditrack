@@ -167,10 +167,7 @@ function Dashboard() {
                 <button
                   onClick={() => {
                     if (selected.size === 0) return;
-                    if (!confirm(`Supprimer ${selected.size} candidature(s) ?`)) return;
-                    const ids = Array.from(selected);
-                    Promise.all(ids.map((id) => deleteFn({ data: { id } })))
-                      .then(() => { exitSelectMode(); invalidate(); });
+                    setConfirmBulk(true);
                   }}
                   disabled={selected.size === 0}
                   className="inline-flex items-center gap-1 rounded-md bg-status-refused-fg px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
