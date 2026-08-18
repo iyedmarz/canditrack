@@ -39,6 +39,7 @@ function Dashboard() {
   const [filter, setFilter] = useState<"all" | CandidatureStatus>("all");
   const [url, setUrl] = useState("");
   const [extracting, setExtracting] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
