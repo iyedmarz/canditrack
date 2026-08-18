@@ -123,7 +123,15 @@
   --border-strong: oklch(1 0 0 / 20%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.75 0.09 254);
+
+  --chart-waiting: #E0B94E;
+  --chart-interview: #6BA3E8;
+  --chart-offer: #7FC456;
+  --chart-refused: #E07A7A;
+  --chart-none: #7E7E7A;
+  --chart-line: #8AB4E8;
 }
+
 
 @layer base {
   * {
