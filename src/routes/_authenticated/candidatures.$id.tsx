@@ -236,6 +236,19 @@ function ContactsManager({
           <Plus className="h-3.5 w-3.5" /> Ajouter un contact
         </button>
       )}
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(v) => !v && setConfirmDelete(null)}
+        title="Supprimer le contact"
+        description={`Le contact « ${confirmDelete?.name} » sera supprimé définitivement.`}
+        confirmText="Supprimer"
+        destructive
+        onConfirm={() => {
+          if (confirmDelete) deleteMut.mutate(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
     </div>
   );
 }
