@@ -40,7 +40,12 @@ export const updateProfileSettings = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      full_name?: string | null;
+      avatar_url?: string | null;
+      locale?: string;
+      theme?: string;
+    } = {};
     if (data.full_name !== undefined) patch.full_name = data.full_name.trim() || null;
     if (data.avatar_url !== undefined) patch.avatar_url = data.avatar_url;
     if (data.locale !== undefined) patch.locale = data.locale;
