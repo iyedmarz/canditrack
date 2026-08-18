@@ -143,7 +143,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <PrefsProvider>
+        <Outlet />
+      </PrefsProvider>
     </QueryClientProvider>
   );
 }
