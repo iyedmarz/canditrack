@@ -324,6 +324,34 @@ function Dashboard() {
             </tbody>
           </table>
         </div>
+
+        <ConfirmDialog
+          open={!!confirmSingle}
+          onOpenChange={(v) => !v && setConfirmSingle(null)}
+          title="Supprimer la candidature"
+          description="Cette action est définitive. La candidature sera supprimée de votre liste."
+          confirmText="Supprimer"
+          destructive
+          onConfirm={() => {
+            if (confirmSingle) deleteMut.mutate(confirmSingle);
+            setConfirmSingle(null);
+          }}
+        />
+
+        <ConfirmDialog
+          open={confirmBulk}
+          onOpenChange={setConfirmBulk}
+          title="Supprimer la sélection"
+          description={`Vous êtes sur le point de supprimer ${selected.size} candidature(s). Cette action est définitive.`}
+          confirmText="Supprimer la sélection"
+          destructive
+          onConfirm={() => {
+            const ids = Array.from(selected);
+            Promise.all(ids.map((id) => deleteFn({ data: { id } })))
+              .then(() => { exitSelectMode(); invalidate(); });
+            setConfirmBulk(false);
+          }}
+        />
       </main>
     </div>
   );
