@@ -16,7 +16,7 @@ import {
   createApplication,
 } from "@/lib/applications.functions";
 import { extractFromUrl } from "@/lib/extract.functions";
-import { ExternalLink, Trash2, CheckSquare, X } from "lucide-react";
+import { ExternalLink, Trash2, CheckSquare, X, Loader2 } from "lucide-react";
 
 const applicationsQuery = queryOptions({
   queryKey: ["applications"],
@@ -39,6 +39,7 @@ function Dashboard() {
   const [filter, setFilter] = useState<"all" | CandidatureStatus>("all");
   const [url, setUrl] = useState("");
   const [extracting, setExtracting] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -82,13 +83,15 @@ function Dashboard() {
 
   const submitExtract = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url.trim()) return;
-    setError(null); setExtracting(true);
+    const target = url.trim();
+    if (!target) return;
+    setError(null); setPendingUrl(target); setExtracting(true);
+    setUrl("");
     try {
-      const info = await extractFn({ data: { url: url.trim() } });
+      const info = await extractFn({ data: { url: target } });
       await createFn({
         data: {
-          url: url.trim(),
+          url: target,
           poste: info.poste,
           societe: info.societe,
           localisation: info.localisation,
@@ -96,13 +99,14 @@ function Dashboard() {
           status: "sent",
         },
       });
-      setUrl("");
       await invalidate();
     } catch (err: any) {
       setError(err?.message ?? "Extraction impossible");
     } finally {
       setExtracting(false);
+      setPendingUrl("");
     }
+
   };
 
   return (
@@ -229,7 +233,25 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
+              {extracting && (
+                <tr className="border-b border-border bg-muted/20">
+                  {selectMode && <td className="px-4 py-2" />}
+                  <td className="px-4 py-2 max-w-[180px] truncate text-primary">{pendingUrl}</td>
+                  <td className="px-4 py-2">
+                    <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Analyse de l'offre…
+                    </span>
+                  </td>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <td key={i} className="px-4 py-2">
+                      <span className="block h-3 w-16 animate-pulse rounded bg-muted" />
+                    </td>
+                  ))}
+                  <td className="px-4 py-2" />
+                </tr>
+              )}
               {filtered.map((c) => (
+
                 <tr
                   key={c.id}
                   className={`border-b border-border last:border-0 hover:bg-muted/30 ${selectMode && selected.has(c.id) ? "bg-muted/40" : ""}`}
