@@ -16,7 +16,7 @@ import {
   createApplication,
 } from "@/lib/applications.functions";
 import { extractFromUrl } from "@/lib/extract.functions";
-import { ExternalLink, Trash2, CheckSquare, X } from "lucide-react";
+import { ExternalLink, Trash2, CheckSquare, X, Loader2 } from "lucide-react";
 
 const applicationsQuery = queryOptions({
   queryKey: ["applications"],
