@@ -93,7 +93,16 @@
   --status-offer-fg: #27500A;
   --status-refused-bg: #FCEBEB;
   --status-refused-fg: #791F1F;
+
+  /* Charts */
+  --chart-waiting: #C99A2E;
+  --chart-interview: #2F6DB5;
+  --chart-offer: #4E8E2A;
+  --chart-refused: #B84A4A;
+  --chart-none: #9C9C95;
+  --chart-line: #042C53;
 }
+
 
 .dark {
   --background: oklch(0.18 0.02 260);
