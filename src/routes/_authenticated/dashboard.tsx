@@ -229,7 +229,25 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
+              {extracting && (
+                <tr className="border-b border-border bg-muted/20">
+                  {selectMode && <td className="px-4 py-2" />}
+                  <td className="px-4 py-2 max-w-[180px] truncate text-primary">{pendingUrl}</td>
+                  <td className="px-4 py-2">
+                    <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Analyse de l'offre…
+                    </span>
+                  </td>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <td key={i} className="px-4 py-2">
+                      <span className="block h-3 w-16 animate-pulse rounded bg-muted" />
+                    </td>
+                  ))}
+                  <td className="px-4 py-2" />
+                </tr>
+              )}
               {filtered.map((c) => (
+
                 <tr
                   key={c.id}
                   className={`border-b border-border last:border-0 hover:bg-muted/30 ${selectMode && selected.has(c.id) ? "bg-muted/40" : ""}`}
