@@ -44,6 +44,8 @@ function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmSingle, setConfirmSingle] = useState<string | null>(null);
+  const [confirmBulk, setConfirmBulk] = useState(false);
 
   const toggleSelected = (id: string) => {
     setSelected((prev) => {
