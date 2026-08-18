@@ -305,7 +305,7 @@ function Dashboard() {
                   </td>
                   <td className="px-4 py-2 text-right">
                     <button
-                      onClick={() => { if (confirm("Supprimer ?")) deleteMut.mutate(c.id); }}
+                      onClick={() => setConfirmSingle(c.id)}
                       className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-status-refused-fg"
                       aria-label="Supprimer"
                     >
