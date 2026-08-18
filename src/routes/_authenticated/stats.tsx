@@ -88,7 +88,7 @@ function StatsPage() {
           <StatCard
             label="Temps de réponse moyen"
             value={o.avgResponseDays === null ? "—" : `${o.avgResponseDays} j`}
-            hint={o.avgResponseDays === null ? "Aucune réponse датée" : "Envoi → 1re réponse"}
+            hint={o.avgResponseDays === null ? "Aucune réponse datée" : "Envoi → 1re réponse"}
           />
         </div>
 
