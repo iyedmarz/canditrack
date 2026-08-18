@@ -93,7 +93,16 @@
   --status-offer-fg: #27500A;
   --status-refused-bg: #FCEBEB;
   --status-refused-fg: #791F1F;
+
+  /* Charts */
+  --chart-waiting: #C99A2E;
+  --chart-interview: #2F6DB5;
+  --chart-offer: #4E8E2A;
+  --chart-refused: #B84A4A;
+  --chart-none: #9C9C95;
+  --chart-line: #042C53;
 }
+
 
 .dark {
   --background: oklch(0.18 0.02 260);
@@ -114,7 +123,15 @@
   --border-strong: oklch(1 0 0 / 20%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.75 0.09 254);
+
+  --chart-waiting: #E0B94E;
+  --chart-interview: #6BA3E8;
+  --chart-offer: #7FC456;
+  --chart-refused: #E07A7A;
+  --chart-none: #7E7E7A;
+  --chart-line: #8AB4E8;
 }
+
 
 @layer base {
   * {
