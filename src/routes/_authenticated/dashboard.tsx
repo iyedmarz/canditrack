@@ -83,14 +83,15 @@ function Dashboard() {
 
   const submitExtract = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url.trim()) return;
-    setError(null); setPendingUrl(url.trim()); setExtracting(true);
+    const target = url.trim();
+    if (!target) return;
+    setError(null); setPendingUrl(target); setExtracting(true);
     setUrl("");
     try {
-      const info = await extractFn({ data: { url: url.trim() } });
+      const info = await extractFn({ data: { url: target } });
       await createFn({
         data: {
-          url: pendingUrl || url.trim(),
+          url: target,
           poste: info.poste,
           societe: info.societe,
           localisation: info.localisation,
