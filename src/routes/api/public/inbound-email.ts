@@ -102,13 +102,19 @@ export const Route = createFileRoute("/api/public/inbound-email")({
           return Response.json({ ok: false, reason: "no_user" }, { status: 200 });
         }
 
-        // When the user forwards a recruiter email from their own mailbox, the
-        // envelope sender is the user. Recover the original sender from the
-        // forwarded headers inside the body.
+        // When the user forwards a recruiter email from their own mailbox (or any
+        // alias / other address), the envelope sender is the user, not the
+        // recruiter. Recover the original sender from the forwarded headers
+        // inside the body and use whichever gives a match.
+        const forwardedSender = parsePastedEmail(text).sender;
         let effectiveSender = bareSender;
-        if (bareSender && bareSender === String(profile.email ?? "").toLowerCase()) {
-          const original = parsePastedEmail(text).sender;
-          if (original) effectiveSender = original;
+        if (
+          forwardedSender &&
+          (bareSender === String(profile.email ?? "").toLowerCase() ||
+            /^(fwd|fw|tr|re)\s*:/i.test(subject) ||
+            forwardedSender !== bareSender)
+        ) {
+          effectiveSender = forwardedSender;
         }
 
         const { data: apps } = await supabaseAdmin
@@ -116,10 +122,17 @@ export const Route = createFileRoute("/api/public/inbound-email")({
           .select("id, societe, url, statut")
           .eq("user_id", profile.id);
 
-        const { application: match, via, ats } = matchApplication(
+        let result = matchApplication(
           { sender: effectiveSender, senderRaw: sender, subject, text },
           apps ?? [],
         );
+        if (!result.application && effectiveSender !== bareSender && bareSender) {
+          result = matchApplication(
+            { sender: bareSender, senderRaw: sender, subject, text },
+            apps ?? [],
+          );
+        }
+        const { application: match, ats } = result;
 
         if (!match) {
           await supabaseAdmin.from("unmatched_email_logs").insert({
@@ -130,6 +143,7 @@ export const Route = createFileRoute("/api/public/inbound-email")({
           });
           return Response.json({ ok: false, reason: "no_application", ats }, { status: 200 });
         }
+
 
         const classified = classifyEmail(`${subject}\n${text}`);
         const contenu = `${summarizeForJournal(classified)}${subject ? ` — « ${subject.slice(0, 120)} »` : ""}`;
