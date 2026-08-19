@@ -147,14 +147,14 @@ export function NotificationsBell() {
             )}
           </button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-[480px] p-0">
+        <PopoverContent align="end" className="w-[640px] p-0">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <span className="text-base font-semibold">Emails reçus</span>
             {notifs.length > 0 && (
               <span className="text-xs text-muted-foreground">{notifs.length}</span>
             )}
           </div>
-          <ScrollArea className="h-[560px]">
+          <ScrollArea className="h-[600px]">
             {notifs.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
                 <Mail className="h-5 w-5 text-muted-foreground" />
@@ -169,9 +169,9 @@ export function NotificationsBell() {
                     key={n.id}
                     className={`px-4 py-3 ${n.isRead ? "" : "bg-muted/40"}`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-sm font-medium text-foreground">
                           {n.subject || "(sans objet)"}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
