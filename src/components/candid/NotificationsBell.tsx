@@ -107,15 +107,24 @@ export function NotificationsBell() {
 
   const attach = useMutation({
     mutationFn: () =>
-      attachFn({ data: { id: target!.id, applicationId: selectedApp } }),
+      attachFn({
+        data: {
+          id: target!.id,
+          applicationId: selectedApp,
+          classification: selectedClass === "none" ? null : (selectedClass as any),
+          applyStatus: selectedClass !== "none",
+        },
+      }),
     onSuccess: () => {
       toast.success("Email rattaché à la candidature");
       setTarget(null);
       setSelectedApp("");
+      setSelectedClass("none");
       invalidate();
     },
     onError: (e: any) => toast.error(e?.message ?? "Échec du rattachement"),
   });
+
 
   const handleOpen = (v: boolean) => {
     setOpen(v);
