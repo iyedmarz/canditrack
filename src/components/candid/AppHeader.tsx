@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, BarChart3, LogOut, Settings, Moon, Sun, Globe } from "lucide-react";
+import { BarChart3, LogOut, Settings, Moon, Sun, Globe } from "lucide-react";
+import { NotificationsBell } from "./NotificationsBell";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { usePrefs } from "@/lib/prefs";
