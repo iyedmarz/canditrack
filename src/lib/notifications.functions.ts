@@ -10,12 +10,15 @@ export type EmailNotification = {
   snippet: string;
   classification: string | null;
   applicationId: string | null;
+  applicationPoste: string | null;
+  applicationSociete: string | null;
   applicationLabel: string | null;
   matchReason: string | null;
   status: "matched" | "unmatched" | "attached" | "ignored";
   isRead: boolean;
   createdAt: string;
 };
+
 
 export const listNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -35,6 +38,8 @@ export const listNotifications = createServerFn({ method: "GET" })
       snippet: r.snippet ?? "",
       classification: r.classification ?? null,
       applicationId: r.application_id ?? null,
+      applicationPoste: r.applications?.poste ?? null,
+      applicationSociete: r.applications?.societe ?? null,
       applicationLabel: r.applications
         ? `${r.applications.poste} — ${r.applications.societe}`
         : null,
@@ -43,6 +48,7 @@ export const listNotifications = createServerFn({ method: "GET" })
       isRead: r.is_read,
       createdAt: r.created_at,
     }));
+
   });
 
 export const markNotificationsRead = createServerFn({ method: "POST" })
