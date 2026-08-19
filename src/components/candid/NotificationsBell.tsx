@@ -67,6 +67,8 @@ export function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState<EmailNotification | null>(null);
   const [selectedApp, setSelectedApp] = useState<string>("");
+  const [selectedClass, setSelectedClass] = useState<string>("none");
+
 
   const fetchNotifs = useServerFn(listNotifications);
   const fetchApps = useServerFn(listApplications);
