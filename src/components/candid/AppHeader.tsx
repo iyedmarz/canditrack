@@ -69,7 +69,7 @@ export function AppHeader() {
         </div>
         <div className="flex items-center gap-1">
           <IconButton aria-label={t("nav.stats")} to="/stats"><BarChart3 className="h-4 w-4" /></IconButton>
-          <IconButton aria-label="Notifications"><Bell className="h-4 w-4" /></IconButton>
+          <NotificationsBell />
 
           <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
