@@ -169,9 +169,9 @@ export function NotificationsBell() {
                     key={n.id}
                     className={`px-4 py-3 ${n.isRead ? "" : "bg-muted/40"}`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-sm font-medium text-foreground">
                           {n.subject || "(sans objet)"}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
