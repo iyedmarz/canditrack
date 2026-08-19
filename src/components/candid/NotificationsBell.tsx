@@ -36,11 +36,21 @@ import {
 import { listApplications } from "@/lib/applications.functions";
 
 const CLASS_LABEL: Record<string, string> = {
+  envoyee: "Envoyée",
   accuse_reception: "Accusé de réception",
   entretien: "Entretien",
   offre: "Offre",
   refusee: "Refus",
 };
+
+const STATUS_OPTIONS = [
+  "envoyee",
+  "accuse_reception",
+  "entretien",
+  "offre",
+  "refusee",
+] as const;
+
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
