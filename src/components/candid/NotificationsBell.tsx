@@ -195,9 +195,9 @@ export function NotificationsBell() {
                           ? CLASS_LABEL[n.classification] ?? n.classification
                           : "Non classifié"}
                       </Badge>
-                      {n.applicationLabel ? (
-                        <Badge variant="outline" className="max-w-[200px] truncate text-[11px]">
-                          {n.applicationLabel}
+                      {n.applicationId ? (
+                        <Badge variant="outline" className="text-[11px]">
+                          Rattaché
                         </Badge>
                       ) : n.status === "ignored" ? (
                         <Badge variant="outline" className="text-[11px]">Ignoré</Badge>
@@ -208,10 +208,11 @@ export function NotificationsBell() {
                       )}
                       {n.status === "attached" && (
                         <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Check className="h-3 w-3" /> rattaché manuellement
+                          <Check className="h-3 w-3" /> manuellement
                         </span>
                       )}
                     </div>
+
 
                     {n.snippet && (
                       <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
