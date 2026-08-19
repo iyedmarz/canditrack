@@ -92,7 +92,7 @@ export const Route = createFileRoute("/api/public/inbound-email")({
         }
 
         const { data: profile } = await supabaseAdmin
-          .from("profiles").select("id").eq("dedicated_email", bareRecipient).maybeSingle();
+          .from("profiles").select("id, email").eq("dedicated_email", bareRecipient).maybeSingle();
         if (!profile) {
           await supabaseAdmin.from("unmatched_email_logs").insert({
             recipient: bareRecipient, sender: bareSender, subject, reason: "no_user",
@@ -100,7 +100,16 @@ export const Route = createFileRoute("/api/public/inbound-email")({
           return Response.json({ ok: false, reason: "no_user" }, { status: 200 });
         }
 
-        const domain = bareSender.split("@")[1] ?? "";
+        // When the user forwards a recruiter email from their own mailbox, the
+        // envelope sender is the user. Recover the original sender from the
+        // forwarded headers inside the body.
+        let effectiveSender = bareSender;
+        if (bareSender && bareSender === String(profile.email ?? "").toLowerCase()) {
+          const original = parsePastedEmail(text).sender;
+          if (original) effectiveSender = original;
+        }
+
+        const domain = effectiveSender.split("@")[1] ?? "";
         const stem = domain.split(".").slice(-2, -1)[0] ?? "";
         const { data: apps } = await supabaseAdmin
           .from("applications")
