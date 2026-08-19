@@ -10,12 +10,15 @@ export type EmailNotification = {
   snippet: string;
   classification: string | null;
   applicationId: string | null;
+  applicationPoste: string | null;
+  applicationSociete: string | null;
   applicationLabel: string | null;
   matchReason: string | null;
   status: "matched" | "unmatched" | "attached" | "ignored";
   isRead: boolean;
   createdAt: string;
 };
+
 
 export const listNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
