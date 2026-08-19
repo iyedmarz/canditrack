@@ -1,0 +1,276 @@
+import { useState } from "react";
+import { Bell, Mail, Link2, X, Check } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  listNotifications,
+  markNotificationsRead,
+  ignoreNotification,
+  attachNotification,
+  type EmailNotification,
+} from "@/lib/notifications.functions";
+import { listApplications } from "@/lib/applications.functions";
+
+const CLASS_LABEL: Record<string, string> = {
+  accuse_reception: "Accusé de réception",
+  entretien: "Entretien",
+  offre: "Offre",
+  refusee: "Refus",
+};
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "à l'instant";
+  if (m < 60) return `il y a ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `il y a ${h} h`;
+  return new Date(iso).toLocaleDateString("fr-FR");
+}
+
+export function NotificationsBell() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [target, setTarget] = useState<EmailNotification | null>(null);
+  const [selectedApp, setSelectedApp] = useState<string>("");
+
+  const fetchNotifs = useServerFn(listNotifications);
+  const fetchApps = useServerFn(listApplications);
+  const markRead = useServerFn(markNotificationsRead);
+  const ignoreFn = useServerFn(ignoreNotification);
+  const attachFn = useServerFn(attachNotification);
+
+  const { data: notifs = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => fetchNotifs(),
+    refetchInterval: 30000,
+  });
+
+  const { data: apps = [] } = useQuery({
+    queryKey: ["applications"],
+    queryFn: () => fetchApps(),
+    enabled: !!target,
+  });
+
+  const unread = notifs.filter((n) => !n.isRead).length;
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["notifications"] });
+    qc.invalidateQueries({ queryKey: ["applications"] });
+  };
+
+  const readAll = useMutation({
+    mutationFn: () => markRead({ data: {} }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const ignore = useMutation({
+    mutationFn: (id: string) => ignoreFn({ data: { id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const attach = useMutation({
+    mutationFn: () =>
+      attachFn({ data: { id: target!.id, applicationId: selectedApp } }),
+    onSuccess: () => {
+      toast.success("Email rattaché à la candidature");
+      setTarget(null);
+      setSelectedApp("");
+      invalidate();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Échec du rattachement"),
+  });
+
+  const handleOpen = (v: boolean) => {
+    setOpen(v);
+    if (v && unread > 0) readAll.mutate();
+  };
+
+  return (
+    <>
+      <Popover open={open} onOpenChange={handleOpen}>
+        <PopoverTrigger asChild>
+          <button
+            aria-label="Notifications"
+            className="relative inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Bell className="h-4 w-4" />
+            {unread > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-[380px] p-0">
+          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+            <span className="text-sm font-semibold">Emails reçus</span>
+            {notifs.length > 0 && (
+              <span className="text-xs text-muted-foreground">{notifs.length}</span>
+            )}
+          </div>
+          <ScrollArea className="max-h-[420px]">
+            {notifs.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                <Mail className="h-5 w-5 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Aucun email transféré pour le moment.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {notifs.map((n) => (
+                  <li
+                    key={n.id}
+                    className={`px-4 py-3 ${n.isRead ? "" : "bg-muted/40"}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {n.subject || "(sans objet)"}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {n.sender}
+                        </p>
+                      </div>
+                      <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+                        {timeAgo(n.createdAt)}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <Badge variant="secondary" className="text-[11px]">
+                        {n.classification
+                          ? CLASS_LABEL[n.classification] ?? n.classification
+                          : "Non classifié"}
+                      </Badge>
+                      {n.applicationLabel ? (
+                        <Badge variant="outline" className="max-w-[200px] truncate text-[11px]">
+                          {n.applicationLabel}
+                        </Badge>
+                      ) : n.status === "ignored" ? (
+                        <Badge variant="outline" className="text-[11px]">Ignoré</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="text-[11px]">
+                          Non rattaché
+                        </Badge>
+                      )}
+                      {n.status === "attached" && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Check className="h-3 w-3" /> rattaché manuellement
+                        </span>
+                      )}
+                    </div>
+
+                    {n.snippet && (
+                      <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
+                        {n.snippet}
+                      </p>
+                    )}
+
+                    {!n.applicationId && n.status !== "ignored" && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => {
+                            setTarget(n);
+                            setSelectedApp("");
+                            setOpen(false);
+                          }}
+                        >
+                          <Link2 className="mr-1 h-3 w-3" />
+                          Rattacher
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs text-muted-foreground"
+                          onClick={() => ignore.mutate(n.id)}
+                        >
+                          <X className="mr-1 h-3 w-3" />
+                          Ignorer
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ScrollArea>
+        </PopoverContent>
+      </Popover>
+
+      <Dialog open={!!target} onOpenChange={(v) => !v && setTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rattacher l'email à une candidature</DialogTitle>
+            <DialogDescription>
+              {target?.subject || "(sans objet)"} — de {target?.sender}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Classification détectée :{" "}
+              <span className="font-medium text-foreground">
+                {target?.classification
+                  ? CLASS_LABEL[target.classification] ?? target.classification
+                  : "aucune"}
+              </span>
+            </p>
+            <Select value={selectedApp} onValueChange={setSelectedApp}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choisir une candidature" />
+              </SelectTrigger>
+              <SelectContent>
+                {apps.map((a: any) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.poste} — {a.societe}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setTarget(null)}>
+              Annuler
+            </Button>
+            <Button
+              disabled={!selectedApp || attach.isPending}
+              onClick={() => attach.mutate()}
+            >
+              {attach.isPending ? "Rattachement…" : "Rattacher"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
