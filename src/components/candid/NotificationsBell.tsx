@@ -235,28 +235,48 @@ export function NotificationsBell() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">
-              Classification détectée :{" "}
-              <span className="font-medium text-foreground">
-                {target?.classification
-                  ? CLASS_LABEL[target.classification] ?? target.classification
-                  : "aucune"}
-              </span>
-            </p>
-            <Select value={selectedApp} onValueChange={setSelectedApp}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une candidature" />
-              </SelectTrigger>
-              <SelectContent>
-                {apps.map((a: any) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.poste} — {a.societe}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-foreground">Candidature</p>
+              <Select value={selectedApp} onValueChange={setSelectedApp}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une candidature" />
+                </SelectTrigger>
+                <SelectContent>
+                  {apps.map((a: any) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.poste} — {a.societe}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-foreground">
+                Statut à appliquer
+                <span className="ml-1 font-normal text-muted-foreground">
+                  {target?.classification
+                    ? `(détecté : ${CLASS_LABEL[target.classification] ?? target.classification})`
+                    : "(non détecté)"}
+                </span>
+              </p>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ne pas changer le statut</SelectItem>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {CLASS_LABEL[s] ?? s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setTarget(null)}>
