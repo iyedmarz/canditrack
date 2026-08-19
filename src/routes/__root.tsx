@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { Toaster } from "../components/ui/sonner";
 import { PrefsProvider } from "../lib/prefs";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -146,6 +147,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <PrefsProvider>
         <Outlet />
+        <Toaster position="top-right" />
       </PrefsProvider>
     </QueryClientProvider>
   );

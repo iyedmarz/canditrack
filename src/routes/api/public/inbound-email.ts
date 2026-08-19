@@ -132,7 +132,23 @@ export const Route = createFileRoute("/api/public/inbound-email")({
             apps ?? [],
           );
         }
-        const { application: match, ats } = result;
+        const { application: match, ats, reason: matchReason } = result as any;
+
+        const classified = classifyEmail(`${subject}\n${text}`);
+        const snippet = (text ?? "").replace(/\s+/g, " ").trim().slice(0, 400);
+
+        // Always notify the user about the incoming email, matched or not.
+        await supabaseAdmin.from("email_notifications").insert({
+          user_id: profile.id,
+          sender: effectiveSender || bareSender,
+          sender_raw: sender,
+          subject,
+          snippet,
+          classification: classified,
+          application_id: match?.id ?? null,
+          match_reason: match ? (matchReason ?? null) : ats ? "ats" : null,
+          status: match ? "matched" : "unmatched",
+        });
 
         if (!match) {
           await supabaseAdmin.from("unmatched_email_logs").insert({
@@ -144,8 +160,6 @@ export const Route = createFileRoute("/api/public/inbound-email")({
           return Response.json({ ok: false, reason: "no_application", ats }, { status: 200 });
         }
 
-
-        const classified = classifyEmail(`${subject}\n${text}`);
         const contenu = `${summarizeForJournal(classified)}${subject ? ` — « ${subject.slice(0, 120)} »` : ""}`;
         await supabaseAdmin.from("journal_entries").insert({
           application_id: match.id,

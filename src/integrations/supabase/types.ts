@@ -94,6 +94,59 @@ export type Database = {
           },
         ]
       }
+      email_notifications: {
+        Row: {
+          application_id: string | null
+          classification: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          match_reason: string | null
+          sender: string | null
+          sender_raw: string | null
+          snippet: string | null
+          status: string
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          classification?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          match_reason?: string | null
+          sender?: string | null
+          sender_raw?: string | null
+          snippet?: string | null
+          status?: string
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          classification?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          match_reason?: string | null
+          sender?: string | null
+          sender_raw?: string | null
+          snippet?: string | null
+          status?: string
+          subject?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_entries: {
         Row: {
           application_id: string
