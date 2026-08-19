@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { classifyEmail, summarizeForJournal } from "@/lib/classify-email";
+import { parsePastedEmail } from "@/lib/parse-email";
 
 // Public inbound-email webhook.
 // Supports two modes:
