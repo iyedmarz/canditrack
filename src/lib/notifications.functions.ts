@@ -138,9 +138,15 @@ export const attachNotification = createServerFn({ method: "POST" })
 
     const { error: fErr } = await supabase
       .from("email_notifications")
-      .update({ status: "attached", application_id: app.id, is_read: true })
+      .update({
+        status: "attached",
+        application_id: app.id,
+        is_read: true,
+        classification,
+      })
       .eq("id", data.id)
       .eq("user_id", userId);
+
     if (fErr) throw fErr;
 
     return { ok: true, applicationId: app.id };
