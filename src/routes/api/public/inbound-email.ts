@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { classifyEmail, summarizeForJournal } from "@/lib/classify-email";
 import { parsePastedEmail } from "@/lib/parse-email";
+import { matchApplication } from "@/lib/match-application";
 
 // Public inbound-email webhook.
 // Supports two modes:
@@ -110,24 +111,24 @@ export const Route = createFileRoute("/api/public/inbound-email")({
           if (original) effectiveSender = original;
         }
 
-        const domain = effectiveSender.split("@")[1] ?? "";
-        const stem = domain.split(".").slice(-2, -1)[0] ?? "";
         const { data: apps } = await supabaseAdmin
           .from("applications")
           .select("id, societe, url, statut")
           .eq("user_id", profile.id);
 
-        const match = (apps ?? []).find((a) => {
-          const s = String(a.societe ?? "").toLowerCase();
-          const u = String(a.url ?? "").toLowerCase();
-          return (stem && (s.includes(stem) || u.includes(stem))) || (domain && u.includes(domain));
-        });
+        const { application: match, via, ats } = matchApplication(
+          { sender: effectiveSender, senderRaw: sender, subject, text },
+          apps ?? [],
+        );
 
         if (!match) {
           await supabaseAdmin.from("unmatched_email_logs").insert({
-            recipient: bareRecipient, sender: bareSender, subject, reason: "no_application",
+            recipient: bareRecipient,
+            sender: effectiveSender || bareSender,
+            subject,
+            reason: ats ? "no_application_ats" : "no_application",
           });
-          return Response.json({ ok: false, reason: "no_application" }, { status: 200 });
+          return Response.json({ ok: false, reason: "no_application", ats }, { status: 200 });
         }
 
         const classified = classifyEmail(`${subject}\n${text}`);
