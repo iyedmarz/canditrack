@@ -222,6 +222,8 @@ export function NotificationsBell() {
                           onClick={() => {
                             setTarget(n);
                             setSelectedApp("");
+                            setSelectedClass(n.classification ?? "none");
+
                             setOpen(false);
                           }}
                         >
