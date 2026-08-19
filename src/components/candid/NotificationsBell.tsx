@@ -177,11 +177,17 @@ export function NotificationsBell() {
                         <p className="truncate text-xs text-muted-foreground">
                           {n.sender}
                         </p>
+                        {n.applicationLabel && (
+                          <p className="mt-0.5 truncate text-xs font-medium text-foreground">
+                            {n.applicationPoste} — {n.applicationSociete}
+                          </p>
+                        )}
                       </div>
                       <span className="whitespace-nowrap text-[11px] text-muted-foreground">
                         {timeAgo(n.createdAt)}
                       </span>
                     </div>
+
 
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <Badge variant="secondary" className="text-[11px]">
