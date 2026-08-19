@@ -36,11 +36,21 @@ import {
 import { listApplications } from "@/lib/applications.functions";
 
 const CLASS_LABEL: Record<string, string> = {
+  envoyee: "Envoyée",
   accuse_reception: "Accusé de réception",
   entretien: "Entretien",
   offre: "Offre",
   refusee: "Refus",
 };
+
+const STATUS_OPTIONS = [
+  "envoyee",
+  "accuse_reception",
+  "entretien",
+  "offre",
+  "refusee",
+] as const;
+
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -57,6 +67,8 @@ export function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState<EmailNotification | null>(null);
   const [selectedApp, setSelectedApp] = useState<string>("");
+  const [selectedClass, setSelectedClass] = useState<string>("none");
+
 
   const fetchNotifs = useServerFn(listNotifications);
   const fetchApps = useServerFn(listApplications);
@@ -95,15 +107,24 @@ export function NotificationsBell() {
 
   const attach = useMutation({
     mutationFn: () =>
-      attachFn({ data: { id: target!.id, applicationId: selectedApp } }),
+      attachFn({
+        data: {
+          id: target!.id,
+          applicationId: selectedApp,
+          classification: selectedClass === "none" ? null : (selectedClass as any),
+          applyStatus: selectedClass !== "none",
+        },
+      }),
     onSuccess: () => {
       toast.success("Email rattaché à la candidature");
       setTarget(null);
       setSelectedApp("");
+      setSelectedClass("none");
       invalidate();
     },
     onError: (e: any) => toast.error(e?.message ?? "Échec du rattachement"),
   });
+
 
   const handleOpen = (v: boolean) => {
     setOpen(v);
@@ -201,6 +222,8 @@ export function NotificationsBell() {
                           onClick={() => {
                             setTarget(n);
                             setSelectedApp("");
+                            setSelectedClass(n.classification ?? "none");
+
                             setOpen(false);
                           }}
                         >
@@ -235,28 +258,48 @@ export function NotificationsBell() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">
-              Classification détectée :{" "}
-              <span className="font-medium text-foreground">
-                {target?.classification
-                  ? CLASS_LABEL[target.classification] ?? target.classification
-                  : "aucune"}
-              </span>
-            </p>
-            <Select value={selectedApp} onValueChange={setSelectedApp}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une candidature" />
-              </SelectTrigger>
-              <SelectContent>
-                {apps.map((a: any) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.poste} — {a.societe}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-foreground">Candidature</p>
+              <Select value={selectedApp} onValueChange={setSelectedApp}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une candidature" />
+                </SelectTrigger>
+                <SelectContent>
+                  {apps.map((a: any) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.poste} — {a.societe}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-foreground">
+                Statut à appliquer
+                <span className="ml-1 font-normal text-muted-foreground">
+                  {target?.classification
+                    ? `(détecté : ${CLASS_LABEL[target.classification] ?? target.classification})`
+                    : "(non détecté)"}
+                </span>
+              </p>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ne pas changer le statut</SelectItem>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {CLASS_LABEL[s] ?? s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setTarget(null)}>

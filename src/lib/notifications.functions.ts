@@ -76,14 +76,23 @@ export const ignoreNotification = createServerFn({ method: "POST" })
 // entry and applies the detected status when one was classified.
 export const attachNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; applicationId: string; applyStatus?: boolean }) =>
-    z
-      .object({
-        id: z.string().uuid(),
-        applicationId: z.string().uuid(),
-        applyStatus: z.boolean().optional(),
-      })
-      .parse(d),
+  .inputValidator(
+    (d: {
+      id: string;
+      applicationId: string;
+      applyStatus?: boolean;
+      classification?: string | null;
+    }) =>
+      z
+        .object({
+          id: z.string().uuid(),
+          applicationId: z.string().uuid(),
+          applyStatus: z.boolean().optional(),
+          classification: z
+            .enum(["envoyee", "accuse_reception", "entretien", "offre", "refusee"])
+            .nullish(),
+        })
+        .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -106,7 +115,7 @@ export const attachNotification = createServerFn({ method: "POST" })
     if (aErr) throw aErr;
     if (!app) throw new Error("Candidature introuvable");
 
-    const classification = (notif.classification ?? null) as any;
+    const classification = (data.classification ?? notif.classification ?? null) as any;
     const contenu = `${summarizeForJournal(classification)}${
       notif.subject ? ` — « ${String(notif.subject).slice(0, 120)} »` : ""
     }${notif.sender ? ` (de ${notif.sender})` : ""}`;
@@ -119,6 +128,7 @@ export const attachNotification = createServerFn({ method: "POST" })
     if (jErr) throw jErr;
 
     if (data.applyStatus !== false && classification && classification !== app.statut) {
+
       const { error: uErr } = await supabase
         .from("applications")
         .update({ statut: classification })
@@ -128,9 +138,15 @@ export const attachNotification = createServerFn({ method: "POST" })
 
     const { error: fErr } = await supabase
       .from("email_notifications")
-      .update({ status: "attached", application_id: app.id, is_read: true })
+      .update({
+        status: "attached",
+        application_id: app.id,
+        is_read: true,
+        classification,
+      })
       .eq("id", data.id)
       .eq("user_id", userId);
+
     if (fErr) throw fErr;
 
     return { ok: true, applicationId: app.id };
