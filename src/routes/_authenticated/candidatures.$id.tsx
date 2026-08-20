@@ -152,7 +152,7 @@ function DetailPage() {
                     type="button"
                     aria-label="Supprimer l'entrée"
                     onClick={() => setConfirmNote({ id: e.id, text: e.text })}
-                    className="rounded-md p-1 text-muted-foreground opacity-0 transition hover:text-destructive focus:opacity-100 group-hover:opacity-100"
+                    className="rounded-md p-1 text-muted-foreground transition hover:text-destructive"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
