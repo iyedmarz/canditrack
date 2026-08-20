@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Mail, Link2, X, Check } from "lucide-react";
+import { Bell, Mail, Link2, X, Check, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -31,9 +31,11 @@ import {
   markNotificationsRead,
   ignoreNotification,
   attachNotification,
+  deleteNotification,
   type EmailNotification,
 } from "@/lib/notifications.functions";
 import { listApplications } from "@/lib/applications.functions";
+import { ConfirmDialog } from "@/components/candid/ConfirmDialog";
 
 const CLASS_LABEL: Record<string, string> = {
   envoyee: "Envoyée",
@@ -75,6 +77,8 @@ export function NotificationsBell() {
   const markRead = useServerFn(markNotificationsRead);
   const ignoreFn = useServerFn(ignoreNotification);
   const attachFn = useServerFn(attachNotification);
+  const deleteFn = useServerFn(deleteNotification);
+  const [confirmDelete, setConfirmDelete] = useState<EmailNotification | null>(null);
 
   const { data: notifs = [] } = useQuery({
     queryKey: ["notifications"],
@@ -183,9 +187,20 @@ export function NotificationsBell() {
                           </p>
                         )}
                       </div>
-                      <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-                        {timeAgo(n.createdAt)}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+                          {timeAgo(n.createdAt)}
+                        </span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label="Supprimer la notification"
+                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          onClick={() => setConfirmDelete(n)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
 
 
@@ -255,6 +270,20 @@ export function NotificationsBell() {
           </ScrollArea>
         </PopoverContent>
       </Popover>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(v) => !v && setConfirmDelete(null)}
+        title="Supprimer cette notification ?"
+        description="L'email restera dans votre boîte, seule la notification sera supprimée."
+        confirmText="Supprimer"
+        destructive
+        onConfirm={() => {
+          const id = confirmDelete?.id;
+          setConfirmDelete(null);
+          if (id) removeNotif.mutate(id);
+        }}
+      />
 
       <Dialog open={!!target} onOpenChange={(v) => !v && setTarget(null)}>
         <DialogContent className="sm:max-w-md">
