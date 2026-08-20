@@ -7,6 +7,7 @@ const dict = {
   fr: {
     "nav.applications": "Candidatures",
     "nav.stats": "Statistiques",
+    "nav.notifications": "Notifications",
     "nav.email": "Configuration email",
     "nav.settings": "Paramètres",
     "nav.signout": "Se déconnecter",
