@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/components/candid/ConfirmDialog";
 import {
   getApplication, updateApplicationStatus, addJournalNote,
   addContact, updateContact, deleteContact, updateApplicationSkills,
-  updateApplicationDetails,
+  updateApplicationDetails, deleteJournalEntry,
 } from "@/lib/applications.functions";
 import type { Contact } from "@/lib/mock-data";
 
@@ -36,6 +36,8 @@ function DetailPage() {
   const noteFn = useServerFn(addJournalNote);
   const skillsFn = useServerFn(updateApplicationSkills);
   const detailsFn = useServerFn(updateApplicationDetails);
+  const deleteNoteFn = useServerFn(deleteJournalEntry);
+  const [confirmNote, setConfirmNote] = useState<{ id: string; text: string } | null>(null);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["application", id] });
 
@@ -52,6 +54,11 @@ function DetailPage() {
     mutationFn: (v: { poste: string; societe: string; url: string; localisation: string; date_applied: string }) =>
       detailsFn({ data: { id, ...v } }),
     onSuccess: () => { setEditing(false); invalidate(); },
+  });
+
+  const deleteNoteMut = useMutation({
+    mutationFn: (entryId: string) => deleteNoteFn({ data: { id: entryId } }),
+    onSuccess: invalidate,
   });
 
   if (!c) return <div className="p-8 text-sm">Introuvable</div>;
@@ -135,10 +142,20 @@ function DetailPage() {
             <h2 className="text-sm font-semibold">Journal</h2>
             <ol className="mt-3 space-y-3 border-l border-border pl-4">
               {[...c.journal].reverse().map((e) => (
-                <li key={e.id} className="relative">
+                <li key={e.id} className="group relative flex items-start justify-between gap-2">
                   <span className={`absolute -left-[19px] top-1.5 h-2 w-2 rounded-full ring-2 ring-card ${e.source === "auto" ? "bg-primary" : "bg-muted-foreground/60"}`} />
-                  <div className="text-sm">{e.text}</div>
-                  <div className="text-[11px] text-muted-foreground">{new Date(e.date).toLocaleString("fr-FR")}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm">{e.text}</div>
+                    <div className="text-[11px] text-muted-foreground">{new Date(e.date).toLocaleString("fr-FR")}</div>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Supprimer l'entrée"
+                    onClick={() => setConfirmNote({ id: e.id, text: e.text })}
+                    className="rounded-md p-1 text-muted-foreground opacity-0 transition hover:text-destructive focus:opacity-100 group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </li>
               ))}
             </ol>
@@ -151,6 +168,19 @@ function DetailPage() {
                 Ajouter
               </button>
             </div>
+            <ConfirmDialog
+              open={!!confirmNote}
+              onOpenChange={(v) => !v && setConfirmNote(null)}
+              title="Supprimer cette entrée du journal ?"
+              description={confirmNote ? `« ${confirmNote.text.slice(0, 120)} » sera définitivement supprimée.` : ""}
+              confirmText="Supprimer"
+              destructive
+              onConfirm={() => {
+                const eid = confirmNote?.id;
+                setConfirmNote(null);
+                if (eid) deleteNoteMut.mutate(eid);
+              }}
+            />
           </section>
         </div>
       </main>
