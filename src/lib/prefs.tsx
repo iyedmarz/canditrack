@@ -39,6 +39,7 @@ const dict = {
   en: {
     "nav.applications": "Applications",
     "nav.stats": "Statistics",
+    "nav.notifications": "Notifications",
     "nav.email": "Email setup",
     "nav.settings": "Settings",
     "nav.signout": "Sign out",
