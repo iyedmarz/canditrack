@@ -65,6 +65,7 @@ export function AppHeader() {
           <nav className="flex items-center gap-1 text-sm">
             <NavItem to="/dashboard">{t("nav.applications")}</NavItem>
             <NavItem to="/stats">{t("nav.stats")}</NavItem>
+            <NavItem to="/notifications">{t("nav.notifications")}</NavItem>
             <NavItem to="/onboarding">{t("nav.email")}</NavItem>
           </nav>
         </div>
