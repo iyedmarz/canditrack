@@ -109,6 +109,16 @@ export function NotificationsBell() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
+  const removeNotif = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("Notification supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Suppression impossible"),
+  });
+
+
   const attach = useMutation({
     mutationFn: () =>
       attachFn({
