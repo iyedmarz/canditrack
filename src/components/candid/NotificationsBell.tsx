@@ -164,10 +164,18 @@ export function NotificationsBell() {
         </PopoverTrigger>
         <PopoverContent align="end" className="w-[640px] p-0">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <span className="text-base font-semibold">Emails reçus</span>
-            {notifs.length > 0 && (
-              <span className="text-xs text-muted-foreground">{notifs.length}</span>
-            )}
+            <div className="flex items-center gap-3">
+              <span className="text-base font-semibold">Emails reçus</span>
+              {notifs.length > 0 && (
+                <span className="text-xs text-muted-foreground">({notifs.length})</span>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
+              <Link to="/notifications" onClick={() => setOpen(false)}>
+                <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                Voir tout
+              </Link>
+            </Button>
           </div>
           <ScrollArea className="h-[600px]">
             {notifs.length === 0 ? (
